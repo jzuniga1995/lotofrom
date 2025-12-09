@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resultados Loto Honduras - Hoy</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .main-layout {
+            display: flex;
+            gap: 20px;
+            max-width: 1600px;
+            margin: 0 auto;
+            align-items: flex-start;
+        }
+
+        .ad-space {
+            width: 160px;
+            min-height: 600px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9em;
+            position: sticky;
+            top: 20px;
+        }
+
+        .container {
+            flex: 1;
+            max-width: 1200px;
+        }
+
+        header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.4);
+            font-weight: 700;
+        }
+
+        .fecha-actual {
+            font-size: 1.3em;
+            opacity: 0.95;
+            font-weight: 300;
+            margin-bottom: 10px;
+        }
+
+        .reloj-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .reloj {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 10px 25px;
+            border-radius: 15px;
+            font-size: 1.4em;
+            font-weight: 600;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Ruleta de números de la suerte */
+        .ruleta-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .ruleta-button {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(245, 87, 108, 0.6);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+        }
+
+        .ruleta-button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 12px 35px rgba(245, 87, 108, 0.8);
+        }
+
+        .ruleta-button:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .ruleta-button.spinning {
+            animation: pulse 0.5s infinite;
+        }
+
+        /* Tooltip flotante */
+        .tooltip {
+            position: absolute;
+            bottom: -80px;
+            right: 0;
+            background: white;
+            color: #333;
+            padding: 15px 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            white-space: nowrap;
+            font-size: 0.9em;
+            font-weight: 600;
+            animation: tooltipBounce 2s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        .tooltip::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            right: 30px;
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 10px solid transparent;
+            border-bottom: 10px solid white;
+        }
+
+        .tooltip-arrow {
+            position: absolute;
+            top: -35px;
+            right: 35px;
+            font-size: 2em;
+            animation: arrowBounce 1s ease-in-out infinite;
+        }
+
+        .tooltip.hidden {
+            display: none;
+        }
+
+        /* Badge de "NUEVO" */
+        .nuevo-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ff4444;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.7em;
+            font-weight: 900;
+            animation: badgePulse 1.5s ease-in-out infinite;
+            box-shadow: 0 4px 15px rgba(255, 68, 68, 0.6);
+        }
+
+        /* Overlay para la ruleta */
+        .ruleta-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .ruleta-overlay.active {
+            display: flex;
+        }
+
+        .ruleta-content {
+            background: white;
+            padding: 50px;
+            border-radius: 30px;
+            text-align: center;
+            max-width: 600px;
+            width: 90%;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .ruleta-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            background: none;
+            border: none;
+            font-size: 2em;
+            cursor: pointer;
+            color: #999;
+            transition: color 0.3s ease;
+        }
+
+        .ruleta-close:hover {
+            color: #333;
+        }
+
+        .ruleta-title {
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .numeros-suerte-display {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 40px 0;
+            flex-wrap: wrap;
+        }
+
+        .numero-suerte {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+            font-weight: 900;
+            box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+            animation: popIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .numero-suerte:nth-child(1) { animation-delay: 0.1s; }
+        .numero-suerte:nth-child(2) { animation-delay: 0.2s; }
+        .numero-suerte:nth-child(3) { animation-delay: 0.3s; }
+        .numero-suerte:nth-child(4) { animation-delay: 0.4s; }
+
+        .spinning-number {
+            font-size: 4em;
+            font-weight: 900;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: numberSpin 0.1s linear infinite;
+        }
+
+        .mensaje-suerte {
+            font-size: 1.3em;
+            color: #666;
+            margin-top: 20px;
+            font-style: italic;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #f093fb;
+            animation: confettiFall 3s linear;
+            pointer-events: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        @keyframes tooltipBounce {
+            0%, 100% { 
+                transform: translateY(0);
+                opacity: 1;
+            }
+            50% { 
+                transform: translateY(-5px);
+                opacity: 0.9;
+            }
+        }
+
+        @keyframes arrowBounce {
+            0%, 100% { 
+                transform: translateY(0);
+            }
+            50% { 
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes badgePulse {
+            0%, 100% { 
+                transform: scale(1);
+            }
+            50% { 
+                transform: scale(1.15);
+            }
+        }
+
+        @keyframes popIn {
+            0% {
+                transform: scale(0) rotate(0deg);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.2) rotate(180deg);
+            }
+            100% {
+                transform: scale(1) rotate(360deg);
+                opacity: 1;
+            }
+        }
+
+        @keyframes numberSpin {
+            0% { transform: rotateX(0deg); }
+            100% { transform: rotateX(360deg); }
+        }
+
+        @keyframes confettiFall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 1.5em;
+            padding: 50px;
+        }
+
+        .spinner {
+            border: 5px solid rgba(255,255,255,0.3);
+            border-top: 5px solid white;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            animation: fadeIn 1s ease;
+        }
+
+        .game-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+            transition: all 0.4s ease;
+            animation: slideUp 0.6s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .game-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .game-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+        }
+
+        .game-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #f0f0f0;
+        }
+
+        .game-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 15px;
+            margin-bottom: 12px;
+        }
+
+        .game-name {
+            font-size: 1.6em;
+            font-weight: 700;
+            color: #2c3e50;
+            flex: 1;
+        }
+
+        .game-logo {
+            width: 90px;
+            height: 90px;
+            object-fit: contain;
+            border-radius: 15px;
+            background: rgba(255,255,255,0.95);
+            padding: 10px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .game-logo:hover {
+            transform: scale(1.15) rotate(8deg);
+        }
+
+        .game-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .game-time {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 1em;
+            font-weight: 700;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .game-date {
+            color: #666;
+            font-size: 1em;
+            font-weight: 600;
+        }
+
+        /* Estilos para Jugá 3 */
+        .juga3-numero {
+            text-align: center;
+            margin: 40px 0;
+            padding: 20px 0;
+        }
+
+        .numeros-individuales {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .bola {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5em;
+            font-weight: 900;
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.5);
+            animation: bounce 0.6s ease;
+            transition: transform 0.3s ease;
+        }
+
+        .bola:hover {
+            transform: scale(1.15);
+        }
+
+        .bola.texto {
+            font-size: 1.2em;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            box-shadow: 0 10px 25px rgba(245, 87, 108, 0.5);
+            padding: 10px;
+        }
+
+        /* Estilos para juegos múltiples */
+        .numeros-container {
+            margin: 25px 0;
+        }
+
+        .numeros-titulo {
+            text-align: center;
+            color: #555;
+            font-size: 0.95em;
+            margin-bottom: 20px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .numeros-grid {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .numero-box {
+            /* Estilos eliminados - ahora usamos .bola para todo */
+        }
+
+        .numero-box:hover {
+            /* Estilos eliminados - ahora usamos .bola para todo */
+        }
+
+        .numero-box.texto {
+            /* Estilos eliminados - ahora usamos .bola para todo */
+        }
+
+        .estado-badge {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 0.9em;
+            font-weight: 700;
+            margin-top: 15px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
+        }
+
+        .pendiente {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+            font-size: 1.3em;
+            font-style: italic;
+        }
+
+        footer {
+            text-align: center;
+            color: white;
+            margin-top: 60px;
+            padding: 30px 20px;
+            opacity: 0.95;
+            border-top: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        footer p {
+            margin: 8px 0;
+            font-size: 1em;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            padding: 8px 15px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-links a:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+        }
+
+        .footer-copyright {
+            margin-top: 20px;
+            font-size: 0.9em;
+            opacity: 0.8;
+        }
+
+        .error-message {
+            background: white;
+            padding: 40px;
+            border-radius: 25px;
+            text-align: center;
+            color: #e74c3c;
+            font-size: 1.3em;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+        }
+
+        @media (max-width: 1400px) {
+            .ad-space {
+                display: none;
+            }
+            
+            .main-layout {
+                padding: 0 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .ruleta-container {
+                top: 10px;
+                right: 10px;
+            }
+
+            .ruleta-button {
+                padding: 12px 20px;
+                font-size: 0.9em;
+            }
+
+            .tooltip {
+                font-size: 0.8em;
+                bottom: -75px;
+                right: -10px;
+            }
+
+            .tooltip-arrow {
+                right: 20px;
+            }
+
+            .ruleta-content {
+                padding: 30px 20px;
+            }
+
+            .ruleta-title {
+                font-size: 1.8em;
+            }
+
+            .numero-suerte {
+                width: 70px;
+                height: 70px;
+                font-size: 2em;
+            }
+
+            header h1 {
+                font-size: 2.2em;
+            }
+
+            .reloj {
+                font-size: 1.1em;
+                padding: 8px 20px;
+            }
+
+            .footer-links {
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            .footer-links a {
+                display: block;
+            }
+
+            .games-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .game-logo {
+                width: 70px;
+                height: 70px;
+            }
+
+            .game-name {
+                font-size: 1.3em;
+            }
+
+            .bola {
+                width: 65px;
+                height: 65px;
+                font-size: 2em;
+            }
+
+            .bola.texto {
+                font-size: 1em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Botón de ruleta de números de la suerte -->
+    <div class="ruleta-container">
+        <button class="ruleta-button" onclick="mostrarRuleta()">
+            <span class="nuevo-badge">NUEVO</span>
+            🍀 Números de la Suerte
+        </button>
+        <div class="tooltip" id="ruletaTooltip">
+            <div class="tooltip-arrow">👇</div>
+            ¡Haz clic para descubrir tus números ganadores! 🎰
+        </div>
+    </div>
+
+    <!-- Overlay de la ruleta -->
+    <div class="ruleta-overlay" id="ruletaOverlay" onclick="cerrarRuleta(event)">
+        <div class="ruleta-content" onclick="event.stopPropagation()">
+            <button class="ruleta-close" onclick="cerrarRuleta()">×</button>
+            <h2 class="ruleta-title">🎰 Tus Números de la Suerte</h2>
+            
+            <div id="ruletaDisplay">
+                <div class="spinning-number">000</div>
+                <p style="color: #999; margin-top: 20px;">Haz clic en "Girar" para descubrir tus números</p>
+            </div>
+            
+            <button class="ruleta-button" onclick="girarRuleta()" style="margin-top: 30px;">
+                🎲 Girar Ruleta
+            </button>
+        </div>
+    </div>
+
+    <div class="main-layout">
+        <!-- Espacio para anuncio izquierdo -->
+        <aside class="ad-space">
+            <!-- Aquí van tus anuncios -->
+            <div>Espacio<br>Publicitario<br>160x600</div>
+        </aside>
+
+        <div class="container">
+            <header>
+                <h1>🎲 Resultados Loto Honduras</h1>
+                <div class="fecha-actual" id="fechaActual">Cargando...</div>
+                <div class="reloj-container">
+                    <span>🕐</span>
+                    <div class="reloj" id="relojHonduras">--:--:--</div>
+                </div>
+            </header>
+
+            <div id="loading" class="loading">
+                <div class="spinner"></div>
+                <p>Cargando resultados...</p>
+            </div>
+
+            <div id="contenido"></div>
+
+            <footer>
+                <p><strong>Actualizado automáticamente 3 veces al día</strong></p>
+                <p>Última actualización: <span id="ultimaActualizacion">-</span></p>
+                
+                <div class="footer-links">
+                    <a href="terminos.html">Términos y Condiciones</a>
+                    <a href="privacidad.html">Política de Privacidad</a>
+                    <a href="contacto.html">Contacto</a>
+                    <a href="sobre-nosotros.html">Sobre Nosotros</a>
+                </div>
+                
+                <div class="footer-copyright">
+                    <p>&copy; 2025 Resultados Loto Honduras. Todos los derechos reservados.</p>
+                    <p style="font-size: 0.85em; margin-top: 10px;">
+                        Los resultados son informativos. Verifique siempre con los canales oficiales de Loto Honduras.
+                    </p>
+                </div>
+            </footer>
+        </div>
+
+        <!-- Espacio para anuncio derecho -->
+        <aside class="ad-space">
+            <!-- Aquí van tus anuncios -->
+            <div>Espacio<br>Publicitario<br>160x600</div>
+        </aside>
+    </div>
+
+    <script>
+  const JSON_URL = 'https://raw.githubusercontent.com/jzuniga1995/lotohn/main/resultados_hoy.json';
+        const DATOS_EMBEBIDOS = null;
+
+        // Función para actualizar el reloj de Honduras
+        function actualizarReloj() {
+            const ahora = new Date();
+            
+            // Honduras está en UTC-6 (CST - Central Standard Time)
+            const offsetHonduras = -6;
+            const utc = ahora.getTime() + (ahora.getTimezoneOffset() * 60000);
+            const horaHonduras = new Date(utc + (3600000 * offsetHonduras));
+            
+            const horas = String(horaHonduras.getHours()).padStart(2, '0');
+            const minutos = String(horaHonduras.getMinutes()).padStart(2, '0');
+            const segundos = String(horaHonduras.getSeconds()).padStart(2, '0');
+            
+            document.getElementById('relojHonduras').textContent = `${horas}:${minutos}:${segundos}`;
+        }
+
+        // Actualizar reloj cada segundo
+        setInterval(actualizarReloj, 1000);
+        actualizarReloj(); // Llamar inmediatamente
+
+        function formatearFecha(fechaStr) {
+            const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                          'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            const fecha = new Date();
+            return `${fecha.getDate()} de ${meses[fecha.getMonth()]} de ${fecha.getFullYear()}`;
+        }
+
+        function crearCardJuego(key, datos) {
+            const card = document.createElement('div');
+            card.className = 'game-card';
+            
+            // Limpiar nombre del juego (quitar hora si ya está en el nombre)
+            let nombreLimpio = datos.nombre_juego;
+            const nombreBase = nombreLimpio.replace(/\s*(11:00 AM|3:00 PM|9:00 PM|10:00 AM|2:00 PM)/gi, '').trim();
+            
+            // Logo del juego
+            const logoHTML = datos.logo_url ? 
+                `<img src="${datos.logo_url}" alt="${nombreBase}" class="game-logo" onerror="this.style.display='none'">` : 
+                '';
+            
+            let contenidoPrincipal = '';
+            
+            // Detectar tipo de juego
+            if (key.includes('juga3')) {
+                // Jugá 3 - Solo bolas con título
+                contenidoPrincipal = datos.numero_ganador ? `
+                    <div class="juga3-numero">
+                        <div class="numeros-titulo">NÚMEROS GANADORES</div>
+                        <div class="numeros-individuales">
+                            ${datos.numeros_individuales.map((num, index) => 
+                                `<div class="bola" style="animation-delay: ${index * 0.1}s">${num}</div>`
+                            ).join('')}
+                        </div>
+                    </div>
+                ` : '<div class="pendiente">⏳ Pendiente</div>';
+            } else {
+                // Otros juegos - Múltiples números en bolas
+                if (datos.numeros_adicionales && datos.numeros_adicionales.length > 0) {
+                    let titulo = 'NÚMEROS GANADORES';
+                    if (key.includes('diaria')) titulo = 'NÚMERO · SIGNO · MULTIPLICADOR';
+                    
+                    contenidoPrincipal = `
+                        <div class="numeros-container">
+                            <div class="numeros-titulo">${titulo}</div>
+                            <div class="numeros-grid">
+                                ${datos.numeros_adicionales.map((num, index) => {
+                                    const esTexto = isNaN(num);
+                                    return `<div class="bola ${esTexto ? 'texto' : ''}" style="animation-delay: ${index * 0.1}s">${num}</div>`;
+                                }).join('')}
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    contenidoPrincipal = '<div class="pendiente">⏳ Pendiente</div>';
+                }
+            }
+
+            card.innerHTML = `
+                <div class="game-header">
+                    <div class="game-title-row">
+                        <div class="game-name">${nombreBase}</div>
+                        ${logoHTML}
+                    </div>
+                    <div class="game-meta">
+                        <div class="game-date">📅 ${datos.fecha_sorteo}</div>
+                        ${datos.hora_sorteo ? `<div class="game-time">🕐 ${datos.hora_sorteo}</div>` : ''}
+                    </div>
+                </div>
+                
+                ${contenidoPrincipal}
+                
+                ${!datos.numero_ganador && (!datos.numeros_adicionales || datos.numeros_adicionales.length === 0) ? `
+                    <div style="text-align:center;">
+                        <span class="estado-badge">⏳ Próximamente</span>
+                    </div>
+                ` : ''}
+            `;
+            
+            return card;
+        }
+
+        function ordenarPorFechaYHora(sorteos) {
+            const ordenHoras = {
+                '11:00 AM': 1, '10:00 AM': 1,
+                '3:00 PM': 2, '2:00 PM': 2, '15:00': 2,
+                '9:00 PM': 3, '21:00': 3
+            };
+
+            return Object.entries(sorteos).sort((a, b) => {
+                const [keyA, datosA] = a;
+                const [keyB, datosB] = b;
+                
+                // Comparar fechas (formato DD-MM)
+                const [diaA, mesA] = datosA.fecha_sorteo.split('-').map(Number);
+                const [diaB, mesB] = datosB.fecha_sorteo.split('-').map(Number);
+                
+                if (mesA !== mesB) return mesB - mesA;
+                if (diaA !== diaB) return diaB - diaA;
+                
+                // Misma fecha, ordenar por hora
+                const horaA = ordenHoras[datosA.hora_sorteo] || 0;
+                const horaB = ordenHoras[datosB.hora_sorteo] || 0;
+                
+                if (horaA !== horaB) return horaA - horaB;
+                
+                // Mismo horario, ordenar por tipo de juego
+                const ordenJuegos = ['juga3', 'pega3', 'premia2', 'diaria', 'super'];
+                const tipoA = ordenJuegos.findIndex(tipo => keyA.includes(tipo));
+                const tipoB = ordenJuegos.findIndex(tipo => keyB.includes(tipo));
+                
+                return tipoA - tipoB;
+            });
+        }
+
+        async function cargarResultados() {
+            try {
+                let data;
+                
+                if (DATOS_EMBEBIDOS) {
+                    data = DATOS_EMBEBIDOS;
+                } else {
+                    const response = await fetch(JSON_URL);
+                    
+                    if (!response.ok) {
+                        throw new Error('No se pudieron cargar los resultados. Asegúrate de estar usando un servidor local.');
+                    }
+                    
+                    data = await response.json();
+                }
+                
+                document.getElementById('fechaActual').textContent = formatearFecha();
+                
+                if (data.fecha_actualizacion) {
+                    document.getElementById('ultimaActualizacion').textContent = data.fecha_actualizacion;
+                }
+                
+                const contenido = document.getElementById('contenido');
+                const grid = document.createElement('div');
+                grid.className = 'games-grid';
+                
+                const sorteos = data.sorteos || data;
+                
+                // Ordenar sorteos
+                const sorteosOrdenados = ordenarPorFechaYHora(sorteos);
+                
+                sorteosOrdenados.forEach(([key, datos]) => {
+                    grid.appendChild(crearCardJuego(key, datos));
+                });
+                
+                contenido.innerHTML = '';
+                contenido.appendChild(grid);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('contenido').innerHTML = `
+                    <div class="error-message">
+                        ⚠️ Error al cargar los resultados<br>
+                        <small>${error.message}</small>
+                    </div>
+                `;
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+            }
+        }
+
+        cargarResultados();
+        setInterval(cargarResultados, 5 * 60 * 1000);
+
+        // ============================================
+        // FUNCIONES DE LA RULETA DE NÚMEROS DE LA SUERTE
+        // ============================================
+
+        // Ocultar tooltip después de 10 segundos o al hacer clic
+        setTimeout(() => {
+            const tooltip = document.getElementById('ruletaTooltip');
+            if (tooltip) tooltip.classList.add('hidden');
+        }, 10000);
+
+        function mostrarRuleta() {
+            document.getElementById('ruletaOverlay').classList.add('active');
+            // Ocultar tooltip permanentemente después del primer clic
+            document.getElementById('ruletaTooltip').classList.add('hidden');
+            
+            // Reset display
+            document.getElementById('ruletaDisplay').innerHTML = `
+                <div class="spinning-number">000</div>
+                <p style="color: #999; margin-top: 20px;">Haz clic en "Girar" para descubrir tus números</p>
+            `;
+        }
+
+        function cerrarRuleta(event) {
+            if (event && event.target !== event.currentTarget) return;
+            document.getElementById('ruletaOverlay').classList.remove('active');
+        }
+
+        function girarRuleta() {
+            const display = document.getElementById('ruletaDisplay');
+            const button = event.target;
+            
+            // Deshabilitar botón mientras gira
+            button.disabled = true;
+            button.classList.add('spinning');
+            button.textContent = '🎲 Girando...';
+            
+            // Mostrar números girando
+            display.innerHTML = '<div class="spinning-number" id="spinningNum">000</div>';
+            
+            let counter = 0;
+            const spinInterval = setInterval(() => {
+                document.getElementById('spinningNum').textContent = 
+                    Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+                counter++;
+            }, 50);
+            
+            // Después de 3 segundos, mostrar los números finales
+            setTimeout(() => {
+                clearInterval(spinInterval);
+                mostrarNumerosSuerte();
+                
+                // Reactivar botón
+                button.disabled = false;
+                button.classList.remove('spinning');
+                button.textContent = '🎲 Girar Otra Vez';
+                
+                // Crear confetti
+                crearConfetti();
+            }, 3000);
+        }
+
+        function mostrarNumerosSuerte() {
+            const numeros = [];
+            
+            // Generar 4 números únicos entre 00 y 99
+            while(numeros.length < 4) {
+                const num = Math.floor(Math.random() * 100);
+                if (!numeros.includes(num)) {
+                    numeros.push(num);
+                }
+            }
+            
+            const mensajes = [
+                "¡Estos son tus números ganadores!",
+                "¡La suerte está de tu lado!",
+                "¡Números mágicos para ti!",
+                "¡Que la fortuna te acompañe!",
+                "¡Confía en estos números!",
+                "¡Tu día de suerte ha llegado!"
+            ];
+            
+            const mensajeAleatorio = mensajes[Math.floor(Math.random() * mensajes.length)];
+            
+            document.getElementById('ruletaDisplay').innerHTML = `
+                <div class="numeros-suerte-display">
+                    ${numeros.map(num => `
+                        <div class="numero-suerte">${num.toString().padStart(2, '0')}</div>
+                    `).join('')}
+                </div>
+                <div class="mensaje-suerte">✨ ${mensajeAleatorio} ✨</div>
+            `;
+        }
+
+        function crearConfetti() {
+            const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#ffd700', '#00ff88'];
+            const overlay = document.getElementById('ruletaOverlay');
+            
+            for (let i = 0; i < 50; i++) {
+                setTimeout(() => {
+                    const confetti = document.createElement('div');
+                    confetti.className = 'confetti';
+                    confetti.style.left = Math.random() * 100 + '%';
+                    confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+                    confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                    confetti.style.width = confetti.style.height = (Math.random() * 10 + 5) + 'px';
+                    
+                    overlay.appendChild(confetti);
+                    
+                    setTimeout(() => confetti.remove(), 3000);
+                }, i * 30);
+            }
+        }
+    </script>
+</body>
+</html>
