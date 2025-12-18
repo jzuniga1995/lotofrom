@@ -6,6 +6,38 @@ const JSON_URL = 'https://raw.githubusercontent.com/jzuniga1995/lotohn/main/resu
 const DATOS_EMBEBIDOS = null;
 
 // ============================================
+// DETECTAR TIPO DE PÁGINA
+// ============================================
+
+function obtenerTipoJuego() {
+    const path = window.location.pathname.toLowerCase();
+    
+    // Mapeo de URLs a tipos de juego
+    const mapeo = {
+        'juga-3': 'juga3',
+        'juga3': 'juga3',
+        'pega-3': 'pega3',
+        'pega3': 'pega3',
+        'premia-2': 'premia2',
+        'premia2': 'premia2',
+        'la-diaria': 'diaria',
+        'diaria': 'diaria',
+        'loto-super-premio': 'super',
+        'super-premio': 'super',
+        'superpremio': 'super'
+    };
+    
+    // Buscar coincidencia en el path
+    for (const [key, value] of Object.entries(mapeo)) {
+        if (path.includes(key)) {
+            return value;
+        }
+    }
+    
+    return 'todos'; // Página principal - mostrar todos
+}
+
+// ============================================
 // RELOJ HONDURAS
 // ============================================
 
@@ -21,7 +53,10 @@ function actualizarReloj() {
     const minutos = String(horaHonduras.getMinutes()).padStart(2, '0');
     const segundos = String(horaHonduras.getSeconds()).padStart(2, '0');
     
-    document.getElementById('relojHonduras').textContent = `${horas}:${minutos}:${segundos}`;
+    const relojElement = document.getElementById('relojHonduras');
+    if (relojElement) {
+        relojElement.textContent = `${horas}:${minutos}:${segundos}`;
+    }
 }
 
 // Actualizar reloj cada segundo
@@ -37,6 +72,29 @@ function formatearFecha() {
                   'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
     const fecha = new Date();
     return `${fecha.getDate()} de ${meses[fecha.getMonth()]} de ${fecha.getFullYear()}`;
+}
+
+// ============================================
+// FILTRAR SORTEOS POR TIPO
+// ============================================
+
+function filtrarSorteos(sorteos, tipoJuego) {
+    if (tipoJuego === 'todos') {
+        return sorteos;
+    }
+    
+    const filtrados = {};
+    
+    for (const [key, value] of Object.entries(sorteos)) {
+        const keyLower = key.toLowerCase();
+        
+        // Coincidencia exacta del tipo de juego
+        if (keyLower.includes(tipoJuego)) {
+            filtrados[key] = value;
+        }
+    }
+    
+    return filtrados;
 }
 
 // ============================================
@@ -155,7 +213,7 @@ function ordenarPorFechaYHora(sorteos) {
 }
 
 // ============================================
-// CARGAR RESULTADOS
+// CARGAR RESULTADOS (CON FILTRADO)
 // ============================================
 
 async function cargarResultados() {
@@ -174,20 +232,47 @@ async function cargarResultados() {
             data = await response.json();
         }
         
-        document.getElementById('fechaActual').textContent = formatearFecha();
+        // Actualizar fecha en el DOM
+        const fechaElement = document.getElementById('fechaActual');
+        if (fechaElement) {
+            fechaElement.textContent = formatearFecha();
+        }
         
+        // Actualizar última actualización
         if (data.fecha_actualizacion) {
-            document.getElementById('ultimaActualizacion').textContent = data.fecha_actualizacion;
+            const actualizacionElement = document.getElementById('ultimaActualizacion');
+            if (actualizacionElement) {
+                actualizacionElement.textContent = data.fecha_actualizacion;
+            }
         }
         
         const contenido = document.getElementById('contenido');
+        if (!contenido) {
+            console.error('Elemento #contenido no encontrado');
+            return;
+        }
+        
         const grid = document.createElement('div');
         grid.className = 'games-grid';
         
         const sorteos = data.sorteos || data;
         
-        // Ordenar sorteos
-        const sorteosOrdenados = ordenarPorFechaYHora(sorteos);
+        // **FILTRAR según el tipo de página**
+        const tipoJuego = obtenerTipoJuego();
+        const sorteosFiltrados = filtrarSorteos(sorteos, tipoJuego);
+        
+        // Verificar si hay resultados después del filtrado
+        if (Object.keys(sorteosFiltrados).length === 0) {
+            contenido.innerHTML = `
+                <div class="error-message">
+                    ℹ️ No hay resultados disponibles para este juego todavía.
+                </div>
+            `;
+            return;
+        }
+        
+        // Ordenar sorteos filtrados
+        const sorteosOrdenados = ordenarPorFechaYHora(sorteosFiltrados);
         
         sorteosOrdenados.forEach(([key, datos]) => {
             grid.appendChild(crearCardJuego(key, datos));
@@ -198,14 +283,20 @@ async function cargarResultados() {
         
     } catch (error) {
         console.error('Error:', error);
-        document.getElementById('contenido').innerHTML = `
-            <div class="error-message">
-                ⚠️ Error al cargar los resultados<br>
-                <small>${error.message}</small>
-            </div>
-        `;
+        const contenido = document.getElementById('contenido');
+        if (contenido) {
+            contenido.innerHTML = `
+                <div class="error-message">
+                    ⚠️ Error al cargar los resultados<br>
+                    <small>${error.message}</small>
+                </div>
+            `;
+        }
     } finally {
-        document.getElementById('loading').style.display = 'none';
+        const loading = document.getElementById('loading');
+        if (loading) {
+            loading.style.display = 'none';
+        }
     }
 }
 
@@ -226,24 +317,33 @@ setTimeout(() => {
 }, 10000);
 
 function mostrarRuleta() {
-    document.getElementById('ruletaOverlay').classList.add('active');
-    document.getElementById('ruletaTooltip').classList.add('hidden');
+    const overlay = document.getElementById('ruletaOverlay');
+    const tooltip = document.getElementById('ruletaTooltip');
+    const display = document.getElementById('ruletaDisplay');
+    
+    if (overlay) overlay.classList.add('active');
+    if (tooltip) tooltip.classList.add('hidden');
     
     // Reset display
-    document.getElementById('ruletaDisplay').innerHTML = `
-        <div class="spinning-number">000</div>
-        <p style="color: #999; margin-top: 20px;">Haz clic en "Girar" para descubrir tus números</p>
-    `;
+    if (display) {
+        display.innerHTML = `
+            <div class="spinning-number">000</div>
+            <p style="color: #999; margin-top: 20px;">Haz clic en "Girar" para descubrir tus números</p>
+        `;
+    }
 }
 
 function cerrarRuleta(event) {
     if (event && event.target !== event.currentTarget) return;
-    document.getElementById('ruletaOverlay').classList.remove('active');
+    const overlay = document.getElementById('ruletaOverlay');
+    if (overlay) overlay.classList.remove('active');
 }
 
 function girarRuleta() {
     const display = document.getElementById('ruletaDisplay');
     const button = event.target;
+    
+    if (!display || !button) return;
     
     // Deshabilitar botón mientras gira
     button.disabled = true;
@@ -255,8 +355,10 @@ function girarRuleta() {
     
     let counter = 0;
     const spinInterval = setInterval(() => {
-        document.getElementById('spinningNum').textContent = 
-            Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+        const spinningNum = document.getElementById('spinningNum');
+        if (spinningNum) {
+            spinningNum.textContent = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+        }
         counter++;
     }, 50);
     
@@ -297,19 +399,24 @@ function mostrarNumerosSuerte() {
     
     const mensajeAleatorio = mensajes[Math.floor(Math.random() * mensajes.length)];
     
-    document.getElementById('ruletaDisplay').innerHTML = `
-        <div class="numeros-suerte-display">
-            ${numeros.map(num => `
-                <div class="numero-suerte">${num.toString().padStart(2, '0')}</div>
-            `).join('')}
-        </div>
-        <div class="mensaje-suerte">✨ ${mensajeAleatorio} ✨</div>
-    `;
+    const display = document.getElementById('ruletaDisplay');
+    if (display) {
+        display.innerHTML = `
+            <div class="numeros-suerte-display">
+                ${numeros.map(num => `
+                    <div class="numero-suerte">${num.toString().padStart(2, '0')}</div>
+                `).join('')}
+            </div>
+            <div class="mensaje-suerte">✨ ${mensajeAleatorio} ✨</div>
+        `;
+    }
 }
 
 function crearConfetti() {
     const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#ffd700', '#00ff88'];
     const overlay = document.getElementById('ruletaOverlay');
+    
+    if (!overlay) return;
     
     for (let i = 0; i < 50; i++) {
         setTimeout(() => {

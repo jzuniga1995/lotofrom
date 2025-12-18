@@ -7,6 +7,11 @@ Allow: /
 
 # Páginas principales - Alta prioridad para crawling
 Allow: /index.html
+Allow: /juga-3.html
+Allow: /pega-3.html
+Allow: /premia-2.html
+Allow: /la-diaria.html
+Allow: /loto-super-premio.html
 Allow: /contacto.html
 Allow: /sobre-nosotros.html
 
