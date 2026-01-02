@@ -74,6 +74,18 @@ function formatearFecha() {
     return `${fecha.getDate()} de ${meses[fecha.getMonth()]} de ${fecha.getFullYear()}`;
 }
 
+// Nueva función para agregar año a la fecha del sorteo
+function formatearFechaSorteo(fechaSorteo) {
+    // Si la fecha ya tiene año (DD-MM-YYYY), retornarla tal cual
+    if (fechaSorteo && fechaSorteo.split('-').length === 3) {
+        return fechaSorteo;
+    }
+    
+    // Si es formato DD-MM, agregar el año actual
+    const yearActual = new Date().getFullYear();
+    return `${fechaSorteo}-${yearActual}`;
+}
+
 // ============================================
 // FILTRAR SORTEOS POR TIPO
 // ============================================
@@ -151,6 +163,9 @@ function crearCardJuego(key, datos) {
         }
     }
 
+    // Formatear la fecha con año
+    const fechaConAnio = formatearFechaSorteo(datos.fecha_sorteo);
+
     card.innerHTML = `
         <div class="game-header">
             <div class="game-title-row">
@@ -158,7 +173,7 @@ function crearCardJuego(key, datos) {
                 ${logoHTML}
             </div>
             <div class="game-meta">
-                <div class="game-date">📅 ${datos.fecha_sorteo}</div>
+                <div class="game-date">📅 ${fechaConAnio}</div>
                 ${datos.hora_sorteo ? `<div class="game-time">🕐 ${datos.hora_sorteo}</div>` : ''}
             </div>
         </div>
@@ -190,10 +205,20 @@ function ordenarPorFechaYHora(sorteos) {
         const [keyA, datosA] = a;
         const [keyB, datosB] = b;
         
-        // Comparar fechas (formato DD-MM)
-        const [diaA, mesA] = datosA.fecha_sorteo.split('-').map(Number);
-        const [diaB, mesB] = datosB.fecha_sorteo.split('-').map(Number);
+        // Comparar fechas (formato DD-MM o DD-MM-YYYY)
+        const partesA = datosA.fecha_sorteo.split('-').map(Number);
+        const partesB = datosB.fecha_sorteo.split('-').map(Number);
         
+        const diaA = partesA[0];
+        const mesA = partesA[1];
+        const yearA = partesA[2] || new Date().getFullYear();
+        
+        const diaB = partesB[0];
+        const mesB = partesB[1];
+        const yearB = partesB[2] || new Date().getFullYear();
+        
+        // Ordenar por año, mes y día (más reciente primero)
+        if (yearA !== yearB) return yearB - yearA;
         if (mesA !== mesB) return mesB - mesA;
         if (diaA !== diaB) return diaB - diaA;
         
