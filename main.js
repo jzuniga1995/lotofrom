@@ -81,9 +81,26 @@ function formatearFechaSorteo(fechaSorteo) {
         return fechaSorteo;
     }
     
-    // Si es formato DD-MM, agregar el año actual
-    const yearActual = new Date().getFullYear();
-    return `${fechaSorteo}-${yearActual}`;
+    // Extraer día y mes
+    const [dia, mes] = fechaSorteo.split('-').map(Number);
+    
+    // Obtener fecha actual
+    const ahora = new Date();
+    const yearActual = ahora.getFullYear();
+    const mesActual = ahora.getMonth() + 1; // 0-11 -> 1-12
+    const diaActual = ahora.getDate();
+    
+    // Si el mes es menor al actual, o es el mismo mes pero el día es menor,
+    // entonces es del año actual. Si no, es del año pasado.
+    let year = yearActual;
+    
+    if (mes < mesActual || (mes === mesActual && dia < diaActual)) {
+        year = yearActual; // Fecha en el pasado de este año
+    } else if (mes > mesActual || (mes === mesActual && dia > diaActual)) {
+        year = yearActual - 1; // Fecha del año pasado
+    }
+    
+    return `${fechaSorteo}-${year}`;
 }
 
 // ============================================
