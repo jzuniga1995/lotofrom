@@ -6,18 +6,18 @@ User-agent: *
 Allow: /
 
 # Páginas principales - Alta prioridad para crawling
-Allow: /index.html
-Allow: /juga-3.html
-Allow: /pega-3.html
-Allow: /premia-2.html
-Allow: /la-diaria.html
-Allow: /loto-super-premio.html
-Allow: /contacto.html
-Allow: /sobre-nosotros.html
+Allow: /index
+Allow: /juga-3
+Allow: /pega-3
+Allow: /premia-2
+Allow: /la-diaria
+Allow: /loto-super-premio
+Allow: /contacto
+Allow: /sobre-nosotros
 
 # Páginas legales - Permitidas pero menor prioridad
-Allow: /terminos.html
-Allow: /privacidad.html
+Allow: /terminos
+Allow: /privacidad
 
 # Bloquear archivos innecesarios
 Disallow: /resultados_hoy.json
