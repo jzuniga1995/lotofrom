@@ -2,7 +2,7 @@
 // CONFIGURACIÓN
 // ============================================
 
-const JSON_URL = 'https://raw.githubusercontent.com/jzuniga1995/lotohn/main/resultados_hoy.json';
+const JSON_URL = '/api/resultados';
 const DATOS_EMBEBIDOS = null;
 
 // ============================================
