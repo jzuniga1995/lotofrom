@@ -457,8 +457,44 @@ async function cargarResultados() {
 // Cargar resultados al iniciar
 cargarResultados();
 
-// Actualizar cada 5 minutos
-setInterval(cargarResultados, 5 * 60 * 1000);
+// Actualizar según horarios de sorteo
+// Durante sorteos (11:00-11:30, 15:00-15:30, 21:00-21:30): cada 1 minuto
+// Resto del día: cada 5 minutos
+
+function obtenerIntervaloActualizacion() {
+    const ahora = new Date();
+    const offsetHonduras = -6;
+    const utc = ahora.getTime() + (ahora.getTimezoneOffset() * 60000);
+    const horaHonduras = new Date(utc + (3600000 * offsetHonduras));
+    
+    const hour = horaHonduras.getHours();
+    const minute = horaHonduras.getMinutes();
+    
+    // Durante ventanas de sorteo: actualizar cada 1 minuto
+    if (
+        (hour === 11 && minute >= 0 && minute <= 30) ||
+        (hour === 15 && minute >= 0 && minute <= 30) ||
+        (hour === 21 && minute >= 0 && minute <= 30)
+    ) {
+        return 1 * 60 * 1000; // 1 minuto
+    }
+    
+    // Resto del día: cada 5 minutos
+    return 5 * 60 * 1000;
+}
+
+// Función para recargar con intervalo dinámico
+function programarSiguienteActualizacion() {
+    const intervalo = obtenerIntervaloActualizacion();
+    setTimeout(() => {
+        cargarResultados();
+        programarSiguienteActualizacion(); // Reprogramar
+    }, intervalo);
+}
+
+// Iniciar ciclo de actualizaciones
+programarSiguienteActualizacion();
+
 
 // ============================================
 // RULETA DE NÚMEROS DE LA SUERTE
