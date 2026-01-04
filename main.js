@@ -134,7 +134,8 @@ function agruparPorHorario(sorteos) {
     const grupos = {
         '11:00 AM': [],
         '3:00 PM': [],
-        '9:00 PM': []
+        '9:00 PM': [],
+        'super': [] // Grupo especial para Súper Premio
     };
     
     const mapeoHoras = {
@@ -148,11 +149,18 @@ function agruparPorHorario(sorteos) {
     };
     
     sorteos.forEach(([key, datos]) => {
-        const horaOriginal = datos.hora_sorteo;
-        const horaNormalizada = mapeoHoras[horaOriginal];
+        const keyLower = key.toLowerCase();
         
-        if (horaNormalizada && grupos[horaNormalizada]) {
-            grupos[horaNormalizada].push([key, datos]);
+        // Si es Súper Premio, va al grupo especial
+        if (keyLower.includes('super')) {
+            grupos['super'].push([key, datos]);
+        } else {
+            const horaOriginal = datos.hora_sorteo;
+            const horaNormalizada = mapeoHoras[horaOriginal];
+            
+            if (horaNormalizada && grupos[horaNormalizada]) {
+                grupos[horaNormalizada].push([key, datos]);
+            }
         }
     });
     
@@ -377,16 +385,18 @@ async function cargarResultados() {
         contenido.innerHTML = '';
         
         // **CREAR SECCIONES POR HORARIO**
-        const horarios = ['11:00 AM', '3:00 PM', '9:00 PM'];
+        const horarios = ['11:00 AM', '3:00 PM', '9:00 PM', 'super'];
         const emojisHorario = {
             '11:00 AM': '🌅',
             '3:00 PM': '☀️',
-            '9:00 PM': '🌙'
+            '9:00 PM': '🌙',
+            'super': '🎰'
         };
         const nombresHorario = {
-            '11:00 AM': 'SORTEO MATUTINO',
-            '3:00 PM': 'SORTEO VESPERTINO',
-            '9:00 PM': 'SORTEO NOCTURNO'
+            '11:00 AM': 'SORTEO DE LA MAÑANA',
+            '3:00 PM': 'SORTEO DE LA TARDE',
+            '9:00 PM': 'SORTEO DE LA NOCHE',
+            'super': 'SÚPER PREMIO'
         };
         
         horarios.forEach(horario => {
@@ -398,10 +408,14 @@ async function cargarResultados() {
                 const section = document.createElement('div');
                 section.className = 'sorteo-section';
                 
-                // Crear header
+                // Crear header (sin mostrar hora para Súper Premio)
                 const header = document.createElement('h2');
                 header.className = 'sorteo-header';
-                header.textContent = `${emojisHorario[horario]} ${nombresHorario[horario]} - ${horario}`;
+                if (horario === 'super') {
+                    header.textContent = `${emojisHorario[horario]} ${nombresHorario[horario]}`;
+                } else {
+                    header.textContent = `${emojisHorario[horario]} ${nombresHorario[horario]} - ${horario}`;
+                }
                 
                 // Crear grid para esta sección
                 const grid = document.createElement('div');
