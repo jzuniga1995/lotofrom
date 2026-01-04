@@ -127,6 +127,54 @@ function filtrarSorteos(sorteos, tipoJuego) {
 }
 
 // ============================================
+// AGRUPAR SORTEOS POR HORARIO (NUEVA)
+// ============================================
+
+function agruparPorHorario(sorteos) {
+    const grupos = {
+        '11:00 AM': [],
+        '3:00 PM': [],
+        '9:00 PM': []
+    };
+    
+    const mapeoHoras = {
+        '11:00 AM': '11:00 AM',
+        '10:00 AM': '11:00 AM',
+        '3:00 PM': '3:00 PM',
+        '2:00 PM': '3:00 PM',
+        '15:00': '3:00 PM',
+        '9:00 PM': '9:00 PM',
+        '21:00': '9:00 PM'
+    };
+    
+    sorteos.forEach(([key, datos]) => {
+        const horaOriginal = datos.hora_sorteo;
+        const horaNormalizada = mapeoHoras[horaOriginal];
+        
+        if (horaNormalizada && grupos[horaNormalizada]) {
+            grupos[horaNormalizada].push([key, datos]);
+        }
+    });
+    
+    // Ordenar dentro de cada grupo por tipo de juego
+    const ordenJuegos = ['juga3', 'pega3', 'premia2', 'diaria', 'super'];
+    
+    Object.keys(grupos).forEach(hora => {
+        grupos[hora].sort((a, b) => {
+            const keyA = a[0].toLowerCase();
+            const keyB = b[0].toLowerCase();
+            
+            const tipoA = ordenJuegos.findIndex(tipo => keyA.includes(tipo));
+            const tipoB = ordenJuegos.findIndex(tipo => keyB.includes(tipo));
+            
+            return tipoA - tipoB;
+        });
+    });
+    
+    return grupos;
+}
+
+// ============================================
 // CREAR CARDS DE JUEGOS
 // ============================================
 
@@ -255,7 +303,7 @@ function ordenarPorFechaYHora(sorteos) {
 }
 
 // ============================================
-// CARGAR RESULTADOS (SIN CACHÉ)
+// CARGAR RESULTADOS (MODIFICADO CON SECCIONES)
 // ============================================
 
 async function cargarResultados() {
@@ -303,9 +351,6 @@ async function cargarResultados() {
             return;
         }
         
-        const grid = document.createElement('div');
-        grid.className = 'games-grid';
-        
         const sorteos = data.sorteos || data;
         
         // **FILTRAR según el tipo de página**
@@ -325,12 +370,56 @@ async function cargarResultados() {
         // Ordenar sorteos filtrados
         const sorteosOrdenados = ordenarPorFechaYHora(sorteosFiltrados);
         
-        sorteosOrdenados.forEach(([key, datos]) => {
-            grid.appendChild(crearCardJuego(key, datos));
-        });
+        // **AGRUPAR POR HORARIO**
+        const gruposPorHorario = agruparPorHorario(sorteosOrdenados);
         
+        // Limpiar contenido
         contenido.innerHTML = '';
-        contenido.appendChild(grid);
+        
+        // **CREAR SECCIONES POR HORARIO**
+        const horarios = ['11:00 AM', '3:00 PM', '9:00 PM'];
+        const emojisHorario = {
+            '11:00 AM': '🌅',
+            '3:00 PM': '☀️',
+            '9:00 PM': '🌙'
+        };
+        const nombresHorario = {
+            '11:00 AM': 'SORTEO MATUTINO',
+            '3:00 PM': 'SORTEO VESPERTINO',
+            '9:00 PM': 'SORTEO NOCTURNO'
+        };
+        
+        horarios.forEach(horario => {
+            const sorteosDeLaHora = gruposPorHorario[horario];
+            
+            // Solo mostrar sección si hay sorteos
+            if (sorteosDeLaHora && sorteosDeLaHora.length > 0) {
+                // Crear sección
+                const section = document.createElement('div');
+                section.className = 'sorteo-section';
+                
+                // Crear header
+                const header = document.createElement('h2');
+                header.className = 'sorteo-header';
+                header.textContent = `${emojisHorario[horario]} ${nombresHorario[horario]} - ${horario}`;
+                
+                // Crear grid para esta sección
+                const grid = document.createElement('div');
+                grid.className = 'sorteo-grid';
+                
+                // Agregar cards al grid
+                sorteosDeLaHora.forEach(([key, datos]) => {
+                    grid.appendChild(crearCardJuego(key, datos));
+                });
+                
+                // Ensamblar sección
+                section.appendChild(header);
+                section.appendChild(grid);
+                
+                // Agregar al contenido principal
+                contenido.appendChild(section);
+            }
+        });
         
     } catch (error) {
         console.error('Error:', error);
@@ -484,4 +573,3 @@ function crearConfetti() {
         }, i * 30);
     }
 }
-

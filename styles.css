@@ -1464,6 +1464,86 @@ footer p {
     }
 }
 
+/* ============================================ */
+/* SECCIONES DE SORTEOS POR HORARIO            */
+/* ============================================ */
+
+.sorteo-section {
+    margin-bottom: 50px;
+    animation: fadeIn 0.8s ease;
+}
+
+.sorteo-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px 30px;
+    border-radius: 15px;
+    font-size: 1.8em;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 25px;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.sorteo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    width: 100%;
+}
+
+/* Responsive para secciones */
+@media (max-width: 1024px) {
+    .sorteo-section {
+        margin-bottom: 40px;
+    }
+    
+    .sorteo-header {
+        font-size: 1.5em;
+        padding: 18px 25px;
+    }
+    
+    .sorteo-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .sorteo-section {
+        margin-bottom: 35px;
+    }
+    
+    .sorteo-header {
+        font-size: 1.3em;
+        padding: 15px 20px;
+        border-radius: 12px;
+    }
+    
+    .sorteo-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .sorteo-section {
+        margin-bottom: 30px;
+    }
+    
+    .sorteo-header {
+        font-size: 1.1em;
+        padding: 12px 15px;
+        border-radius: 10px;
+    }
+    
+    .sorteo-grid {
+        gap: 15px;
+    }
+}
+
 /* ============================================
    NAVEGACIÓN PRINCIPAL
    ============================================ */
