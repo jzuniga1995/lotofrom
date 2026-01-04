@@ -2,7 +2,7 @@
 // CONFIGURACIÓN
 // ============================================
 
-const JSON_URL = '/api/resultados';
+const JSON_URL = '/api/resultados-v2';
 const DATOS_EMBEBIDOS = null;
 
 // ============================================
@@ -255,7 +255,7 @@ function ordenarPorFechaYHora(sorteos) {
 }
 
 // ============================================
-// CARGAR RESULTADOS (CON FILTRADO)
+// CARGAR RESULTADOS (SIN CACHÉ)
 // ============================================
 
 async function cargarResultados() {
@@ -265,7 +265,16 @@ async function cargarResultados() {
         if (DATOS_EMBEBIDOS) {
             data = DATOS_EMBEBIDOS;
         } else {
-            const response = await fetch(JSON_URL);
+            // AGREGAR TIMESTAMP PARA EVITAR CACHÉ
+            const urlSinCache = `${JSON_URL}?t=${Date.now()}`;
+            
+            const response = await fetch(urlSinCache, {
+                cache: 'no-store',
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache'
+                }
+            });
             
             if (!response.ok) {
                 throw new Error('No se pudieron cargar los resultados. Por favor, intenta de nuevo más tarde.');
@@ -475,3 +484,4 @@ function crearConfetti() {
         }, i * 30);
     }
 }
+
