@@ -1,4 +1,30 @@
 /* ============================================ */
+/* VARIABLES CSS - Reutilizables               */
+/* ============================================ */
+
+:root {
+    /* Gradientes */
+    --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --gradient-bg: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
+    --gradient-nav: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    
+    /* Sombras */
+    --shadow-sm: 0 4px 15px rgba(102, 126, 234, 0.4);
+    --shadow-md: 0 8px 25px rgba(102, 126, 234, 0.6);
+    --shadow-lg: 0 15px 40px rgba(0, 0, 0, 0.3);
+    --shadow-hover: 0 20px 50px rgba(0, 0, 0, 0.4);
+    --shadow-pink: 0 8px 25px rgba(245, 87, 108, 0.6);
+    --shadow-pink-hover: 0 12px 35px rgba(245, 87, 108, 0.8);
+    
+    /* Colores */
+    --color-text-dark: #2c3e50;
+    --color-text-gray: #666;
+    --color-bg-white: #fff;
+    --color-border: #f0f0f0;
+}
+
+/* ============================================ */
 /* ESTILOS GLOBALES - LotoHN                  */
 /* ============================================ */
 
@@ -16,7 +42,7 @@ html {
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
+    background: var(--gradient-bg);
     min-height: 100vh;
     padding: 20px;
     overflow-x: hidden;
@@ -35,22 +61,6 @@ body {
     margin: 0 auto;
     align-items: flex-start;
     width: 100%;
-}
-
-.ad-space {
-    width: 160px;
-    min-width: 160px;
-    min-height: 600px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 15px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: rgba(255, 255, 255, 0.5);
-    font-size: 0.9em;
-    position: sticky;
-    top: 20px;
-    flex-shrink: 0;
 }
 
 .container {
@@ -78,7 +88,6 @@ header h1 {
     margin-bottom: 10px;
     text-shadow: 3px 3px 6px rgba(0,0,0,0.4);
     font-weight: 700;
-    word-wrap: break-word;
     overflow-wrap: break-word;
 }
 
@@ -125,7 +134,7 @@ header h1 {
 }
 
 .ruleta-button {
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background: var(--gradient-secondary);
     border: none;
     color: white;
     padding: 15px 30px;
@@ -133,7 +142,7 @@ header h1 {
     font-size: 1.1em;
     font-weight: 700;
     cursor: pointer;
-    box-shadow: 0 8px 25px rgba(245, 87, 108, 0.6);
+    box-shadow: var(--shadow-pink);
     transition: all 0.3s ease;
     display: flex;
     align-items: center;
@@ -143,7 +152,7 @@ header h1 {
 
 .ruleta-button:hover {
     transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 12px 35px rgba(245, 87, 108, 0.8);
+    box-shadow: var(--shadow-pink-hover);
 }
 
 .ruleta-button:active {
@@ -260,11 +269,11 @@ header h1 {
 .ruleta-title {
     font-size: 2.5em;
     margin-bottom: 30px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--gradient-primary);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .numeros-suerte-display {
@@ -278,7 +287,7 @@ header h1 {
 .numero-suerte {
     width: 100px;
     height: 100px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--gradient-primary);
     color: white;
     border-radius: 50%;
     display: flex;
@@ -286,7 +295,7 @@ header h1 {
     justify-content: center;
     font-size: 3em;
     font-weight: 900;
-    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+    box-shadow: var(--shadow-md);
     animation: popIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
@@ -298,7 +307,7 @@ header h1 {
 .spinning-number {
     font-size: 4em;
     font-weight: 900;
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background: var(--gradient-secondary);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -307,7 +316,7 @@ header h1 {
 
 .mensaje-suerte {
     font-size: 1.3em;
-    color: #666;
+    color: var(--color-text-gray);
     margin-top: 20px;
     font-style: italic;
 }
@@ -358,7 +367,7 @@ header h1 {
     background: white;
     border-radius: 20px;
     padding: 25px;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+    box-shadow: var(--shadow-lg);
     transition: all 0.4s ease;
     animation: slideUp 0.6s ease;
     position: relative;
@@ -373,12 +382,12 @@ header h1 {
     left: 0;
     right: 0;
     height: 5px;
-    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    background: var(--gradient-primary);
 }
 
 .game-card:hover {
-    transform: translateY(-10px) scale(1.02);
-    box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+    transform: translateY(-10px);
+    box-shadow: var(--shadow-hover);
 }
 
 /* ============================================ */
@@ -388,7 +397,7 @@ header h1 {
 .game-header {
     margin-bottom: 20px;
     padding-bottom: 15px;
-    border-bottom: 3px solid #f0f0f0;
+    border-bottom: 3px solid var(--color-border);
 }
 
 .game-title-row {
@@ -402,9 +411,8 @@ header h1 {
 .game-name {
     font-size: 1.6em;
     font-weight: 700;
-    color: #2c3e50;
+    color: var(--color-text-dark);
     flex: 1;
-    word-wrap: break-word;
     overflow-wrap: break-word;
 }
 
@@ -421,7 +429,7 @@ header h1 {
 }
 
 .game-logo:hover {
-    transform: scale(1.15) rotate(8deg);
+    transform: scale(1.1) rotate(8deg);
 }
 
 .game-meta {
@@ -433,17 +441,17 @@ header h1 {
 }
 
 .game-time {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--gradient-primary);
     color: white;
     padding: 8px 20px;
     border-radius: 25px;
     font-size: 1em;
     font-weight: 700;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    box-shadow: var(--shadow-sm);
 }
 
 .game-date {
-    color: #666;
+    color: var(--color-text-gray);
     font-size: 1em;
     font-weight: 600;
 }
@@ -468,7 +476,7 @@ header h1 {
 .bola {
     width: 80px;
     height: 80px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--gradient-primary);
     color: white;
     border-radius: 50%;
     display: flex;
@@ -483,15 +491,15 @@ header h1 {
 }
 
 .bola:hover {
-    transform: scale(1.15);
+    transform: scale(1.1);
 }
 
 .bola.texto {
     font-size: 1.2em;
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background: var(--gradient-secondary);
     box-shadow: 0 10px 25px rgba(245, 87, 108, 0.5);
     padding: 10px;
-    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .numeros-container {
@@ -528,7 +536,7 @@ header h1 {
     margin-top: 15px;
     text-transform: uppercase;
     letter-spacing: 1px;
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    background: var(--gradient-secondary);
     color: white;
     box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
 }
@@ -558,7 +566,7 @@ footer {
 footer p {
     margin: 8px 0;
     font-size: 1em;
-    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .footer-links {
@@ -601,7 +609,7 @@ footer p {
     text-align: center;
     color: #e74c3c;
     font-size: 1.3em;
-    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+    box-shadow: var(--shadow-lg);
 }
 
 /* ============================================ */
@@ -618,7 +626,6 @@ footer p {
     line-height: 1.8;
     width: 100%;
     overflow-wrap: break-word;
-    word-wrap: break-word;
 }
 
 .seo-content h2 {
@@ -628,7 +635,6 @@ footer p {
     border-bottom: 3px solid #764ba2;
     padding-bottom: 10px;
     overflow-wrap: break-word;
-    word-wrap: break-word;
 }
 
 .seo-content h3 {
@@ -636,7 +642,6 @@ footer p {
     margin: 25px 0 12px;
     font-size: 1.4em;
     overflow-wrap: break-word;
-    word-wrap: break-word;
 }
 
 .seo-content p {
@@ -644,7 +649,6 @@ footer p {
     color: #444;
     text-align: justify;
     overflow-wrap: break-word;
-    word-wrap: break-word;
 }
 
 .seo-content ul, 
@@ -655,11 +659,11 @@ footer p {
 
 .seo-content li {
     margin: 8px 0;
-    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .highlight-box {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--gradient-primary);
     color: white;
     padding: 25px;
     border-radius: 10px;
@@ -683,7 +687,7 @@ footer p {
 
 .tip-card h4 {
     color: #667eea;
-    margin: 0 0 10px 0;
+    margin: 0 0 10px;
 }
 
 .stats-table {
@@ -706,7 +710,7 @@ footer p {
 }
 
 .stats-table th {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--gradient-primary);
     color: white;
     padding: 15px;
     text-align: left;
@@ -715,12 +719,83 @@ footer p {
 .stats-table td {
     padding: 12px 15px;
     border-bottom: 1px solid #eee;
-    word-wrap: break-word;
     overflow-wrap: break-word;
 }
 
 .stats-table tr:hover {
     background: #f8f9ff;
+}
+
+/* ============================================ */
+/* SECCIONES DE SORTEOS POR HORARIO            */
+/* ============================================ */
+
+.sorteo-section {
+    margin-bottom: 50px;
+    animation: fadeIn 0.8s ease;
+}
+
+.sorteo-header {
+    background: var(--gradient-primary);
+    color: white;
+    padding: 20px 30px;
+    border-radius: 15px;
+    font-size: 1.8em;
+    font-weight: 700;
+    text-align: center;
+    margin-bottom: 25px;
+    box-shadow: var(--shadow-sm);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+.sorteo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 25px;
+    width: 100%;
+}
+
+/* ============================================ */
+/* NAVEGACIÓN PRINCIPAL                        */
+/* ============================================ */
+
+.main-nav {
+    background: var(--gradient-nav);
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    flex-wrap: wrap;
+    gap: 0;
+}
+
+.main-nav a {
+    color: white;
+    text-decoration: none;
+    padding: 16px 24px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    border-bottom: 3px solid transparent;
+    display: inline-block;
+    white-space: nowrap;
+}
+
+.main-nav a:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-bottom-color: #f5576c;
+    transform: translateY(-2px);
+}
+
+.main-nav a.active {
+    background: rgba(255, 255, 255, 0.15);
+    border-bottom-color: #ffd700;
+    font-weight: 700;
 }
 
 /* ============================================ */
@@ -781,21 +856,13 @@ footer p {
 }
 
 @keyframes arrowBounce {
-    0%, 100% { 
-        transform: translateY(0);
-    }
-    50% { 
-        transform: translateY(-10px);
-    }
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
 }
 
 @keyframes badgePulse {
-    0%, 100% { 
-        transform: scale(1);
-    }
-    50% { 
-        transform: scale(1.15);
-    }
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
 }
 
 @keyframes popIn {
@@ -829,24 +896,11 @@ footer p {
 }
 
 /* ============================================ */
-/* RESPONSIVE                                  */
+/* RESPONSIVE - CONSOLIDADO                    */
 /* ============================================ */
 
-/* Extra Large Screens - Desktop Large */
-@media (max-width: 1600px) {
-    .ad-space {
-        width: 140px;
-        min-width: 140px;
-        min-height: 500px;
-    }
-}
-
-/* Large Screens - Desktop */
+/* Large Desktop */
 @media (max-width: 1400px) {
-    .ad-space {
-        display: none;
-    }
-    
     .main-layout {
         padding: 0;
     }
@@ -856,7 +910,7 @@ footer p {
     }
 }
 
-/* Medium-Large Screens - Tablet Landscape */
+/* Tablet Landscape */
 @media (max-width: 1024px) {
     body {
         padding: 15px;
@@ -888,15 +942,28 @@ footer p {
         padding: 25px;
         margin: 30px 15px;
     }
+    
+    .sorteo-section {
+        margin-bottom: 40px;
+    }
+    
+    .sorteo-header {
+        font-size: 1.5em;
+        padding: 18px 25px;
+    }
+    
+    .sorteo-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
 }
 
-/* Medium Screens - Tablet Portrait */
+/* Tablet Portrait */
 @media (max-width: 768px) {
     body {
         padding: 10px;
     }
     
-    /* Header */
     header {
         margin-bottom: 30px;
     }
@@ -920,7 +987,6 @@ footer p {
         padding: 8px 20px;
     }
     
-    /* Ruleta */
     .ruleta-container {
         top: 10px;
         right: 10px;
@@ -968,7 +1034,6 @@ footer p {
         font-size: 1.1em;
     }
     
-    /* Games Grid */
     .games-grid {
         grid-template-columns: 1fr;
         gap: 20px;
@@ -1004,7 +1069,6 @@ footer p {
         padding: 6px 18px;
     }
     
-    /* Números */
     .bola {
         width: 65px;
         height: 65px;
@@ -1021,7 +1085,6 @@ footer p {
         gap: 15px;
     }
     
-    /* Footer */
     .footer-links {
         flex-direction: column;
         gap: 10px;
@@ -1036,7 +1099,6 @@ footer p {
         padding: 25px 15px;
     }
     
-    /* SEO Content */
     .seo-content {
         padding: 20px;
         margin: 20px 10px;
@@ -1059,9 +1121,38 @@ footer p {
     .stats-table td {
         padding: 10px 8px;
     }
+    
+    .main-nav {
+        padding: 8px 0;
+        overflow-x: auto;
+        justify-content: flex-start;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+    }
+    
+    .main-nav a {
+        padding: 12px 16px;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+    }
+    
+    .sorteo-section {
+        margin-bottom: 35px;
+    }
+    
+    .sorteo-header {
+        font-size: 1.3em;
+        padding: 15px 20px;
+        border-radius: 12px;
+    }
+    
+    .sorteo-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
 }
 
-/* Small Screens - Large Phones */
+/* Large Phones */
 @media (max-width: 480px) {
     body {
         padding: 10px;
@@ -1074,7 +1165,6 @@ footer p {
         width: 100%;
     }
     
-    /* Header */
     header h1 {
         font-size: 1.8em;
         margin-bottom: 6px;
@@ -1091,7 +1181,6 @@ footer p {
         letter-spacing: 1px;
     }
     
-    /* Ruleta */
     .ruleta-container {
         position: fixed;
         top: auto;
@@ -1178,7 +1267,6 @@ footer p {
         margin-top: 15px;
     }
     
-    /* Games */
     .games-grid {
         grid-template-columns: 1fr;
         gap: 15px;
@@ -1210,7 +1298,6 @@ footer p {
         font-size: 0.9em;
     }
     
-    /* Números */
     .juga3-numero {
         margin: 30px 0;
         padding: 15px 0;
@@ -1256,7 +1343,6 @@ footer p {
         padding: 30px 15px;
     }
     
-    /* Footer */
     footer {
         margin-top: 30px;
         padding: 20px 10px;
@@ -1275,7 +1361,6 @@ footer p {
         font-size: 0.85em;
     }
     
-    /* Loading & Error */
     .loading {
         font-size: 1.2em;
         padding: 40px 15px;
@@ -1292,7 +1377,6 @@ footer p {
         border-radius: 20px;
     }
     
-    /* SEO Content Mobile */
     .seo-content {
         padding: 15px;
         margin: 15px 5px;
@@ -1342,9 +1426,28 @@ footer p {
         padding: 20px 15px;
         margin: 20px -5px;
     }
+    
+    .main-nav a {
+        padding: 10px 12px;
+        font-size: 0.8rem;
+    }
+    
+    .sorteo-section {
+        margin-bottom: 30px;
+    }
+    
+    .sorteo-header {
+        font-size: 1.1em;
+        padding: 12px 15px;
+        border-radius: 10px;
+    }
+    
+    .sorteo-grid {
+        gap: 15px;
+    }
 }
 
-/* Extra Small Screens - Small Phones */
+/* Extra Small Phones */
 @media (max-width: 360px) {
     header h1 {
         font-size: 1.6em;
@@ -1413,7 +1516,7 @@ footer p {
     }
 }
 
-/* Landscape Orientation for Phones */
+/* Landscape Mode for Phones */
 @media (max-height: 500px) and (orientation: landscape) {
     body {
         padding: 5px;
@@ -1463,150 +1566,3 @@ footer p {
         margin: 15px 5px;
     }
 }
-
-/* ============================================ */
-/* SECCIONES DE SORTEOS POR HORARIO            */
-/* ============================================ */
-
-.sorteo-section {
-    margin-bottom: 50px;
-    animation: fadeIn 0.8s ease;
-}
-
-.sorteo-header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    padding: 20px 30px;
-    border-radius: 15px;
-    font-size: 1.8em;
-    font-weight: 700;
-    text-align: center;
-    margin-bottom: 25px;
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-}
-
-.sorteo-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 25px;
-    width: 100%;
-}
-
-/* Responsive para secciones */
-@media (max-width: 1024px) {
-    .sorteo-section {
-        margin-bottom: 40px;
-    }
-    
-    .sorteo-header {
-        font-size: 1.5em;
-        padding: 18px 25px;
-    }
-    
-    .sorteo-grid {
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 20px;
-    }
-}
-
-@media (max-width: 768px) {
-    .sorteo-section {
-        margin-bottom: 35px;
-    }
-    
-    .sorteo-header {
-        font-size: 1.3em;
-        padding: 15px 20px;
-        border-radius: 12px;
-    }
-    
-    .sorteo-grid {
-        grid-template-columns: 1fr;
-        gap: 20px;
-    }
-}
-
-@media (max-width: 480px) {
-    .sorteo-section {
-        margin-bottom: 30px;
-    }
-    
-    .sorteo-header {
-        font-size: 1.1em;
-        padding: 12px 15px;
-        border-radius: 10px;
-    }
-    
-    .sorteo-grid {
-        gap: 15px;
-    }
-}
-
-/* ============================================
-   NAVEGACIÓN PRINCIPAL
-   ============================================ */
-
-.main-nav {
-    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-    padding: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    flex-wrap: wrap;
-    gap: 0;
-}
-
-.main-nav a {
-    color: white;
-    text-decoration: none;
-    padding: 16px 24px;
-    font-weight: 600;
-    font-size: 0.95rem;
-    transition: all 0.3s ease;
-    border-bottom: 3px solid transparent;
-    display: inline-block;
-    white-space: nowrap;
-}
-
-.main-nav a:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-bottom-color: #f5576c;
-    transform: translateY(-2px);
-}
-
-.main-nav a.active {
-    background: rgba(255, 255, 255, 0.15);
-    border-bottom-color: #ffd700;
-    font-weight: 700;
-}
-
-/* Responsive para móviles */
-@media (max-width: 768px) {
-    .main-nav {
-        padding: 8px 0;
-        overflow-x: auto;
-        justify-content: flex-start;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: thin;
-    }
-    
-    .main-nav a {
-        padding: 12px 16px;
-        font-size: 0.85rem;
-        flex-shrink: 0;
-    }
-}
-
-@media (max-width: 480px) {
-    .main-nav a {
-        padding: 10px 12px;
-        font-size: 0.8rem;
-    }
-}
-

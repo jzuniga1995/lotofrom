@@ -4,19 +4,48 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
+    <!-- ============== OPTIMIZACIÓN DE RENDIMIENTO ============== -->
+    <!-- Preload recursos críticos (Mejora LCP y FCP) -->
+    <link rel="preload" href="styles.css" as="style">
+    <link rel="preload" href="main.js" as="script">
+    
+    <!-- Preconnect a dominios externos (Reduce TTFB) -->
+    <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="https://pl28417320.effectivegatecpm.com">
+    
     <!-- ============== SEO ULTRA AGRESIVO ============== -->
-<title>Resultados Loto Honduras HOY | La Diaria, Pega 3, Jugá 3</title>
-    <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-B9L2HSP4B6"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+    <title>Resultados Loto Honduras HOY | La Diaria, Pega 3, Jugá 3</title>
+    
+    <!-- Google Analytics con LAZY LOAD (Mejora TBT) -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      
+      // Cargar Analytics solo después de interacción
+      let analyticsLoaded = false;
+      function loadAnalytics() {
+        if (analyticsLoaded) return;
+        analyticsLoaded = true;
+        
+        const script = document.createElement('script');
+        script.async = true;
+        script.src = 'https://www.googletagmanager.com/gtag/js?id=G-B9L2HSP4B6';
+        document.head.appendChild(script);
+        
+        gtag('js', new Date());
+        gtag('config', 'G-B9L2HSP4B6');
+      }
+      
+      // Cargar en scroll, touch o después de 3s
+      ['scroll','touchstart','click'].forEach(e => 
+        window.addEventListener(e, loadAnalytics, {once:true, passive:true})
+      );
+      setTimeout(loadAnalytics, 3000);
+    </script>
 
-  gtag('config', 'G-B9L2HSP4B6');
-</script>
-
-     <meta name="description" content="Resultados oficiales Loto Honduras HOY. La Diaria, Pega 3, Jugá 3, Premia 2, Súper Premio. Sorteos 11AM, 3PM, 9PM. Consulta gratis ya!">
+    <meta name="description" content="Resultados oficiales Loto Honduras HOY. La Diaria, Pega 3, Jugá 3, Premia 2, Súper Premio. Sorteos 11AM, 3PM, 9PM. Consulta gratis ya!">
     <meta name="keywords" content="loto honduras, resultados loto honduras hoy, loto honduras en vivo, juga 3 honduras, pega 3 honduras, premia 2 honduras, la diaria honduras, super premio honduras, numeros ganadores loto, sorteos loto honduras, loteria nacional honduras, resultados loteria honduras, loto hn, loto honduras 11am, loto honduras 3pm, loto honduras 9pm, numeros de la suerte, como ganar loto honduras, estadisticas loto, historico loto honduras, sorteos en vivo, premios loto honduras, ganadores loto, jugadas ganadoras, números calientes loto, números fríos loto, predicciones loto honduras, tips loto honduras, estrategias loto, probabilidades loto, cuanto paga juga 3, cuanto paga pega 3, cuanto paga premia 2, donde cobrar loto honduras, horarios sorteos loto, loto honduras online, consultar loto honduras, verificar boleto loto, resultados anteriores loto, loto honduras ayer, loto honduras semana, loto honduras mes">
     
     <!-- ============== SEO TÉCNICO AVANZADO ============== -->
@@ -82,10 +111,6 @@
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/favicon.png">
     <link rel="manifest" href="/site.webmanifest">
-    
-    <!-- ============== PRECONEXIONES PARA VELOCIDAD ============== -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
     
     <!-- ============== SCHEMA.ORG JSON-LD ULTRA COMPLETO ============== -->
     <script type="application/ld+json">
@@ -208,10 +233,42 @@
     }
     </script>
     
-    <!-- ============== ESTILOS ============== -->
-    <link rel="stylesheet" href="styles.css">
+    <!-- ============== CSS CRÍTICO INLINE (Optimiza FCP y LCP) ============== -->
+    <style>
+      /* Critical CSS - Lo mínimo para renderizar above-the-fold */
+      *{margin:0;padding:0;box-sizing:border-box}
+      body{font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f7fafc;line-height:1.6;color:#2d3748}
+      
+      /* Loading */
+      .loading{text-align:center;padding:40px}
+      .spinner{border:4px solid #e2e8f0;border-top:4px solid #667eea;border-radius:50%;width:50px;height:50px;animation:spin 1s linear infinite;margin:0 auto 20px}
+      @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+      
+      /* Header */
+      header{text-align:center;padding:20px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;box-shadow:0 4px 6px rgba(0,0,0,.1)}
+      h1{font-size:clamp(1.5rem,5vw,2.2rem);margin-bottom:10px;font-weight:700}
+      
+      /* Layout */
+      .main-layout{display:flex;gap:20px;max-width:1200px;margin:0 auto;padding:20px}
+      .container{flex:1;min-width:0}
+      
+      /* Nav */
+      .main-nav{display:flex;flex-wrap:wrap;gap:10px;padding:15px;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.1);justify-content:center;position:sticky;top:0;z-index:100}
+      .main-nav a{padding:10px 18px;border-radius:8px;text-decoration:none;color:#4a5568;font-weight:600;transition:all .2s ease;font-size:14px}
+      .main-nav a:hover,.main-nav a.active{background:#667eea;color:#fff;transform:translateY(-2px)}
+      
+      /* Responsive */
+      @media(max-width:768px){
+        .main-layout{padding:10px}
+        h1{font-size:1.4rem}
+        .main-nav{padding:10px;gap:5px}
+        .main-nav a{padding:8px 12px;font-size:13px}
+      }
+    </style>
     
-
+    <!-- ============== CSS COMPLETO (Lazy Load para no bloquear render) ============== -->
+    <link rel="stylesheet" href="styles.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="styles.css"></noscript>
 </head>
 <body>
     <!-- ============== CONTENIDO SEO OCULTO PARA CRAWLERS ============== -->
@@ -283,11 +340,6 @@
     </div>
 
     <div class="main-layout">
-        <!-- Espacio para anuncio izquierdo -->
-        <aside class="ad-space" aria-label="Espacio publicitario">
-            <div>Espacio<br>Publicitario<br>160x600</div>
-        </aside>
-
         <main class="container">
             <header>
                 <h1>🎲 Resultados Loto Honduras</h1>
@@ -297,12 +349,6 @@
                     <time class="reloj" id="relojHonduras" datetime="">--:--:--</time>
                 </div>
             </header>
-
-        
-<!-- ANUNCIO NATIVE BANNER -->
-<script async="async" data-cfasync="false" src="https://pl28417320.effectivegatecpm.com/c053bb82e7e2a6d39cd34a6acda6a322/invoke.js"></script>
-<div id="container-c053bb82e7e2a6d39cd34a6acda6a322"></div>
-            
 
             <div id="loading" class="loading" role="status" aria-live="polite">
                 <div class="spinner" aria-hidden="true"></div>
@@ -596,7 +642,6 @@
                 </p>
             </article>
 
-
             <footer>
                 <p><strong>Actualizado automáticamente 3 veces al día</strong></p>
                 <p>Última actualización: <time id="ultimaActualizacion">-</time></p>
@@ -624,14 +669,9 @@
                 </div>
             </footer>
         </main>
-
-        <!-- Espacio para anuncio derecho -->
-        <aside class="ad-space" aria-label="Espacio publicitario">
-            <div>Espacio<br>Publicitario<br>160x600</div>
-        </aside>
     </div>
 
-    <!-- ============== JAVASCRIPT ============== -->
-    <script src="main.js"></script>
+    <!-- ============== JAVASCRIPT CON DEFER (No bloquea render) ============== -->
+    <script defer src="main.js"></script>
 </body>
 </html>

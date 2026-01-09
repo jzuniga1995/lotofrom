@@ -1,506 +1,354 @@
 // ============================================
-// CONFIGURACIÓN
+// CONFIGURACIÓN Y CACHE DE ELEMENTOS DOM
 // ============================================
+const CONFIG = {
+    JSON_URL: '/api/resultados-v2',
+    DATOS_EMBEBIDOS: null,
+    INTERVALO_SORTEO: 60000, // 1 min
+    INTERVALO_NORMAL: 300000 // 5 min
+};
 
-const JSON_URL = '/api/resultados-v2';
-const DATOS_EMBEBIDOS = null;
+// Cache de elementos DOM (evita múltiples queries)
+const DOM = {
+    reloj: null,
+    fecha: null,
+    actualizacion: null,
+    contenido: null,
+    loading: null
+};
+
+// Inicializar cache DOM
+function initDOM() {
+    DOM.reloj = document.getElementById('relojHonduras');
+    DOM.fecha = document.getElementById('fechaActual');
+    DOM.actualizacion = document.getElementById('ultimaActualizacion');
+    DOM.contenido = document.getElementById('contenido');
+    DOM.loading = document.getElementById('loading');
+}
 
 // ============================================
-// DETECTAR TIPO DE PÁGINA
+// DETECTAR TIPO DE JUEGO (Optimizado)
 // ============================================
+const MAPEO_JUEGOS = {
+    'juga-3': 'juga3', 'juga3': 'juga3',
+    'pega-3': 'pega3', 'pega3': 'pega3',
+    'premia-2': 'premia2', 'premia2': 'premia2',
+    'la-diaria': 'diaria', 'diaria': 'diaria',
+    'loto-super-premio': 'super', 'super-premio': 'super', 'superpremio': 'super'
+};
 
 function obtenerTipoJuego() {
     const path = window.location.pathname.toLowerCase();
-    
-    // Mapeo de URLs a tipos de juego
-    const mapeo = {
-        'juga-3': 'juga3',
-        'juga3': 'juga3',
-        'pega-3': 'pega3',
-        'pega3': 'pega3',
-        'premia-2': 'premia2',
-        'premia2': 'premia2',
-        'la-diaria': 'diaria',
-        'diaria': 'diaria',
-        'loto-super-premio': 'super',
-        'super-premio': 'super',
-        'superpremio': 'super'
-    };
-    
-    // Buscar coincidencia en el path
-    for (const [key, value] of Object.entries(mapeo)) {
-        if (path.includes(key)) {
-            return value;
-        }
+    for (const key in MAPEO_JUEGOS) {
+        if (path.includes(key)) return MAPEO_JUEGOS[key];
     }
-    
-    return 'todos'; // Página principal - mostrar todos
+    return 'todos';
 }
 
 // ============================================
-// RELOJ HONDURAS
+// RELOJ HONDURAS (Optimizado)
 // ============================================
-
 function actualizarReloj() {
+    if (!DOM.reloj) return;
+    
     const ahora = new Date();
-    
-    // Honduras está en UTC-6 (CST - Central Standard Time)
-    const offsetHonduras = -6;
     const utc = ahora.getTime() + (ahora.getTimezoneOffset() * 60000);
-    const horaHonduras = new Date(utc + (3600000 * offsetHonduras));
+    const horaHN = new Date(utc - 21600000); // UTC-6 en ms
     
-    const horas = String(horaHonduras.getHours()).padStart(2, '0');
-    const minutos = String(horaHonduras.getMinutes()).padStart(2, '0');
-    const segundos = String(horaHonduras.getSeconds()).padStart(2, '0');
-    
-    const relojElement = document.getElementById('relojHonduras');
-    if (relojElement) {
-        relojElement.textContent = `${horas}:${minutos}:${segundos}`;
-    }
+    DOM.reloj.textContent = horaHN.toTimeString().slice(0, 8);
 }
 
-// Actualizar reloj cada segundo
 setInterval(actualizarReloj, 1000);
-actualizarReloj();
 
 // ============================================
-// UTILIDADES
+// UTILIDADES (Optimizadas)
 // ============================================
+const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
 function formatearFecha() {
-    const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
-                  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-    const fecha = new Date();
-    return `${fecha.getDate()} de ${meses[fecha.getMonth()]} de ${fecha.getFullYear()}`;
+    const f = new Date();
+    return `${f.getDate()} de ${MESES[f.getMonth()]} de ${f.getFullYear()}`;
 }
 
-// Nueva función para agregar año a la fecha del sorteo
-function formatearFechaSorteo(fechaSorteo) {
-    // Si la fecha ya tiene año (DD-MM-YYYY), retornarla tal cual
-    if (fechaSorteo && fechaSorteo.split('-').length === 3) {
-        return fechaSorteo;
-    }
+function formatearFechaSorteo(fecha) {
+    if (!fecha || fecha.includes('-') && fecha.split('-').length === 3) return fecha;
     
-    // Extraer día y mes
-    const [dia, mes] = fechaSorteo.split('-').map(Number);
-    
-    // Obtener fecha actual
+    const [dia, mes] = fecha.split('-').map(Number);
     const ahora = new Date();
-    const yearActual = ahora.getFullYear();
-    const mesActual = ahora.getMonth() + 1; // 0-11 -> 1-12
-    const diaActual = ahora.getDate();
+    const year = (mes < ahora.getMonth() + 1 || (mes === ahora.getMonth() + 1 && dia <= ahora.getDate())) 
+        ? ahora.getFullYear() 
+        : ahora.getFullYear() - 1;
     
-    // Si el mes es menor al actual, o es el mismo mes pero el día es menor,
-    // entonces es del año actual. Si no, es del año pasado.
-    let year = yearActual;
-    
-    if (mes < mesActual || (mes === mesActual && dia < diaActual)) {
-        year = yearActual; // Fecha en el pasado de este año
-    } else if (mes > mesActual || (mes === mesActual && dia > diaActual)) {
-        year = yearActual - 1; // Fecha del año pasado
-    }
-    
-    return `${fechaSorteo}-${year}`;
+    return `${fecha}-${year}`;
 }
 
 // ============================================
-// FILTRAR SORTEOS POR TIPO
+// FILTRAR Y AGRUPAR (Optimizado)
 // ============================================
-
-function filtrarSorteos(sorteos, tipoJuego) {
-    if (tipoJuego === 'todos') {
-        return sorteos;
-    }
+function filtrarSorteos(sorteos, tipo) {
+    if (tipo === 'todos') return sorteos;
     
-    const filtrados = {};
-    
-    for (const [key, value] of Object.entries(sorteos)) {
-        const keyLower = key.toLowerCase();
-        
-        // Coincidencia exacta del tipo de juego
-        if (keyLower.includes(tipoJuego)) {
-            filtrados[key] = value;
-        }
-    }
-    
-    return filtrados;
+    return Object.fromEntries(
+        Object.entries(sorteos).filter(([key]) => key.toLowerCase().includes(tipo))
+    );
 }
 
-// ============================================
-// AGRUPAR SORTEOS POR HORARIO (NUEVA)
-// ============================================
+const GRUPOS_HORARIO = {
+    '11:00 AM': [], '3:00 PM': [], '9:00 PM': [], 'super': []
+};
+
+const MAPEO_HORAS = {
+    '11:00 AM': '11:00 AM', '10:00 AM': '11:00 AM',
+    '3:00 PM': '3:00 PM', '2:00 PM': '3:00 PM', '15:00': '3:00 PM',
+    '9:00 PM': '9:00 PM', '21:00': '9:00 PM'
+};
+
+const ORDEN_JUEGOS = ['juga3', 'pega3', 'premia2', 'diaria', 'super'];
 
 function agruparPorHorario(sorteos) {
-    const grupos = {
-        '11:00 AM': [],
-        '3:00 PM': [],
-        '9:00 PM': [],
-        'super': [] // Grupo especial para Súper Premio
-    };
-    
-    const mapeoHoras = {
-        '11:00 AM': '11:00 AM',
-        '10:00 AM': '11:00 AM',
-        '3:00 PM': '3:00 PM',
-        '2:00 PM': '3:00 PM',
-        '15:00': '3:00 PM',
-        '9:00 PM': '9:00 PM',
-        '21:00': '9:00 PM'
-    };
+    // Reset grupos
+    Object.keys(GRUPOS_HORARIO).forEach(k => GRUPOS_HORARIO[k] = []);
     
     sorteos.forEach(([key, datos]) => {
         const keyLower = key.toLowerCase();
         
-        // Si es Súper Premio, va al grupo especial
         if (keyLower.includes('super')) {
-            grupos['super'].push([key, datos]);
+            GRUPOS_HORARIO['super'].push([key, datos]);
         } else {
-            const horaOriginal = datos.hora_sorteo;
-            const horaNormalizada = mapeoHoras[horaOriginal];
-            
-            if (horaNormalizada && grupos[horaNormalizada]) {
-                grupos[horaNormalizada].push([key, datos]);
-            }
+            const horaNorm = MAPEO_HORAS[datos.hora_sorteo];
+            if (horaNorm) GRUPOS_HORARIO[horaNorm].push([key, datos]);
         }
     });
     
-    // Ordenar dentro de cada grupo por tipo de juego
-    const ordenJuegos = ['juga3', 'pega3', 'premia2', 'diaria', 'super'];
-    
-    Object.keys(grupos).forEach(hora => {
-        grupos[hora].sort((a, b) => {
-            const keyA = a[0].toLowerCase();
-            const keyB = b[0].toLowerCase();
-            
-            const tipoA = ordenJuegos.findIndex(tipo => keyA.includes(tipo));
-            const tipoB = ordenJuegos.findIndex(tipo => keyB.includes(tipo));
-            
+    // Ordenar grupos
+    Object.values(GRUPOS_HORARIO).forEach(grupo => {
+        grupo.sort((a, b) => {
+            const tipoA = ORDEN_JUEGOS.findIndex(t => a[0].toLowerCase().includes(t));
+            const tipoB = ORDEN_JUEGOS.findIndex(t => b[0].toLowerCase().includes(t));
             return tipoA - tipoB;
         });
     });
     
-    return grupos;
+    return GRUPOS_HORARIO;
 }
 
 // ============================================
-// CREAR CARDS DE JUEGOS
+// CREAR CARDS (Optimizado con templates)
 // ============================================
-
 function crearCardJuego(key, datos) {
     const card = document.createElement('div');
     card.className = 'game-card';
     
-    // Limpiar nombre del juego
-    let nombreLimpio = datos.nombre_juego;
-    const nombreBase = nombreLimpio.replace(/\s*(11:00 AM|3:00 PM|9:00 PM|10:00 AM|2:00 PM)/gi, '').trim();
+    const nombreBase = datos.nombre_juego.replace(/\s*(11:00 AM|3:00 PM|9:00 PM|10:00 AM|2:00 PM)/gi, '').trim();
+    const logo = datos.logo_url ? `<img src="${datos.logo_url}" alt="${nombreBase}" class="game-logo" onerror="this.style.display='none'">` : '';
     
-    // Logo del juego
-    const logoHTML = datos.logo_url ? 
-        `<img src="${datos.logo_url}" alt="${nombreBase}" class="game-logo" onerror="this.style.display='none'">` : 
-        '';
+    let contenido = '';
     
-    let contenidoPrincipal = '';
-    
-    // Detectar tipo de juego
     if (key.includes('juga3')) {
-        // Jugá 3 - Solo bolas con título
-        contenidoPrincipal = datos.numero_ganador ? `
+        contenido = datos.numero_ganador ? `
             <div class="juga3-numero">
                 <div class="numeros-titulo">NÚMEROS GANADORES</div>
                 <div class="numeros-individuales">
-                    ${datos.numeros_individuales.map((num, index) => 
-                        `<div class="bola" style="animation-delay: ${index * 0.1}s">${num}</div>`
+                    ${datos.numeros_individuales.map((n, i) => 
+                        `<div class="bola" style="animation-delay:${i*0.1}s">${n}</div>`
                     ).join('')}
                 </div>
             </div>
         ` : '<div class="pendiente">⏳ Pendiente</div>';
-    } else {
-        // Otros juegos - Múltiples números en bolas
-        if (datos.numeros_adicionales && datos.numeros_adicionales.length > 0) {
-            let titulo = 'NÚMEROS GANADORES';
-            if (key.includes('diaria')) titulo = 'NÚMERO · SIGNO · MULTIPLICADOR';
-            
-            contenidoPrincipal = `
-                <div class="numeros-container">
-                    <div class="numeros-titulo">${titulo}</div>
-                    <div class="numeros-grid">
-                        ${datos.numeros_adicionales.map((num, index) => {
-                            const esTexto = isNaN(num);
-                            return `<div class="bola ${esTexto ? 'texto' : ''}" style="animation-delay: ${index * 0.1}s">${num}</div>`;
-                        }).join('')}
-                    </div>
+    } else if (datos.numeros_adicionales?.length > 0) {
+        const titulo = key.includes('diaria') ? 'NÚMERO · SIGNO · MULTIPLICADOR' : 'NÚMEROS GANADORES';
+        contenido = `
+            <div class="numeros-container">
+                <div class="numeros-titulo">${titulo}</div>
+                <div class="numeros-grid">
+                    ${datos.numeros_adicionales.map((n, i) => 
+                        `<div class="bola ${isNaN(n)?'texto':''}" style="animation-delay:${i*0.1}s">${n}</div>`
+                    ).join('')}
                 </div>
-            `;
-        } else {
-            contenidoPrincipal = '<div class="pendiente">⏳ Pendiente</div>';
-        }
+            </div>
+        `;
+    } else {
+        contenido = '<div class="pendiente">⏳ Pendiente</div>';
     }
-
-    // Formatear la fecha con año
+    
     const fechaConAnio = formatearFechaSorteo(datos.fecha_sorteo);
-
+    const sinResultados = !datos.numero_ganador && (!datos.numeros_adicionales?.length);
+    
     card.innerHTML = `
         <div class="game-header">
             <div class="game-title-row">
                 <div class="game-name">${nombreBase}</div>
-                ${logoHTML}
+                ${logo}
             </div>
             <div class="game-meta">
                 <div class="game-date">📅 ${fechaConAnio}</div>
                 ${datos.hora_sorteo ? `<div class="game-time">🕐 ${datos.hora_sorteo}</div>` : ''}
             </div>
         </div>
-        
-        ${contenidoPrincipal}
-        
-        ${!datos.numero_ganador && (!datos.numeros_adicionales || datos.numeros_adicionales.length === 0) ? `
-            <div style="text-align:center;">
-                <span class="estado-badge">⏳ Próximamente</span>
-            </div>
-        ` : ''}
+        ${contenido}
+        ${sinResultados ? '<div style="text-align:center"><span class="estado-badge">⏳ Próximamente</span></div>' : ''}
     `;
     
     return card;
 }
 
 // ============================================
-// ORDENAR SORTEOS
+// ORDENAR SORTEOS (Optimizado)
 // ============================================
+const ORDEN_HORAS = {
+    '11:00 AM': 1, '10:00 AM': 1,
+    '3:00 PM': 2, '2:00 PM': 2, '15:00': 2,
+    '9:00 PM': 3, '21:00': 3
+};
 
 function ordenarPorFechaYHora(sorteos) {
-    const ordenHoras = {
-        '11:00 AM': 1, '10:00 AM': 1,
-        '3:00 PM': 2, '2:00 PM': 2, '15:00': 2,
-        '9:00 PM': 3, '21:00': 3
-    };
-
     return Object.entries(sorteos).sort((a, b) => {
         const [keyA, datosA] = a;
         const [keyB, datosB] = b;
         
-        // Comparar fechas (formato DD-MM o DD-MM-YYYY)
-        const partesA = datosA.fecha_sorteo.split('-').map(Number);
-        const partesB = datosB.fecha_sorteo.split('-').map(Number);
+        const [diaA, mesA, yearA = new Date().getFullYear()] = datosA.fecha_sorteo.split('-').map(Number);
+        const [diaB, mesB, yearB = new Date().getFullYear()] = datosB.fecha_sorteo.split('-').map(Number);
         
-        const diaA = partesA[0];
-        const mesA = partesA[1];
-        const yearA = partesA[2] || new Date().getFullYear();
-        
-        const diaB = partesB[0];
-        const mesB = partesB[1];
-        const yearB = partesB[2] || new Date().getFullYear();
-        
-        // Ordenar por año, mes y día (más reciente primero)
+        // Ordenar por fecha (reciente primero)
         if (yearA !== yearB) return yearB - yearA;
         if (mesA !== mesB) return mesB - mesA;
         if (diaA !== diaB) return diaB - diaA;
         
-        // Misma fecha, ordenar por hora
-        const horaA = ordenHoras[datosA.hora_sorteo] || 0;
-        const horaB = ordenHoras[datosB.hora_sorteo] || 0;
-        
+        // Ordenar por hora
+        const horaA = ORDEN_HORAS[datosA.hora_sorteo] || 0;
+        const horaB = ORDEN_HORAS[datosB.hora_sorteo] || 0;
         if (horaA !== horaB) return horaA - horaB;
         
-        // Mismo horario, ordenar por tipo de juego
-        const ordenJuegos = ['juga3', 'pega3', 'premia2', 'diaria', 'super'];
-        const tipoA = ordenJuegos.findIndex(tipo => keyA.includes(tipo));
-        const tipoB = ordenJuegos.findIndex(tipo => keyB.includes(tipo));
-        
+        // Ordenar por tipo
+        const tipoA = ORDEN_JUEGOS.findIndex(t => keyA.includes(t));
+        const tipoB = ORDEN_JUEGOS.findIndex(t => keyB.includes(t));
         return tipoA - tipoB;
     });
 }
 
 // ============================================
-// CARGAR RESULTADOS (MODIFICADO CON SECCIONES)
+// CARGAR RESULTADOS (Optimizado)
 // ============================================
-
 async function cargarResultados() {
     try {
         let data;
         
-        if (DATOS_EMBEBIDOS) {
-            data = DATOS_EMBEBIDOS;
+        if (CONFIG.DATOS_EMBEBIDOS) {
+            data = CONFIG.DATOS_EMBEBIDOS;
         } else {
-            // AGREGAR TIMESTAMP PARA EVITAR CACHÉ
-            const urlSinCache = `${JSON_URL}?t=${Date.now()}`;
-            
-            const response = await fetch(urlSinCache, {
+            const res = await fetch(`${CONFIG.JSON_URL}?t=${Date.now()}`, {
                 cache: 'no-store',
-                headers: {
-                    'Cache-Control': 'no-cache, no-store, must-revalidate',
-                    'Pragma': 'no-cache'
-                }
+                headers: { 'Cache-Control': 'no-cache' }
             });
             
-            if (!response.ok) {
-                throw new Error('No se pudieron cargar los resultados. Por favor, intenta de nuevo más tarde.');
-            }
-            
-            data = await response.json();
+            if (!res.ok) throw new Error('Error al cargar resultados');
+            data = await res.json();
         }
         
-        // Actualizar fecha en el DOM
-        const fechaElement = document.getElementById('fechaActual');
-        if (fechaElement) {
-            fechaElement.textContent = formatearFecha();
+        // Actualizar UI
+        if (DOM.fecha) DOM.fecha.textContent = formatearFecha();
+        if (DOM.actualizacion && data.fecha_actualizacion) {
+            DOM.actualizacion.textContent = data.fecha_actualizacion;
         }
         
-        // Actualizar última actualización
-        if (data.fecha_actualizacion) {
-            const actualizacionElement = document.getElementById('ultimaActualizacion');
-            if (actualizacionElement) {
-                actualizacionElement.textContent = data.fecha_actualizacion;
-            }
-        }
-        
-        const contenido = document.getElementById('contenido');
-        if (!contenido) {
-            console.error('Elemento #contenido no encontrado');
-            return;
-        }
+        if (!DOM.contenido) return;
         
         const sorteos = data.sorteos || data;
-        
-        // **FILTRAR según el tipo de página**
         const tipoJuego = obtenerTipoJuego();
         const sorteosFiltrados = filtrarSorteos(sorteos, tipoJuego);
         
-        // Verificar si hay resultados después del filtrado
         if (Object.keys(sorteosFiltrados).length === 0) {
-            contenido.innerHTML = `
-                <div class="error-message">
-                    ℹ️ No hay resultados disponibles para este juego todavía.
-                </div>
-            `;
+            DOM.contenido.innerHTML = '<div class="error-message">ℹ️ No hay resultados disponibles para este juego todavía.</div>';
             return;
         }
         
-        // Ordenar sorteos filtrados
         const sorteosOrdenados = ordenarPorFechaYHora(sorteosFiltrados);
-        
-        // **AGRUPAR POR HORARIO**
-        const gruposPorHorario = agruparPorHorario(sorteosOrdenados);
+        const grupos = agruparPorHorario(sorteosOrdenados);
         
         // Limpiar contenido
-        contenido.innerHTML = '';
+        DOM.contenido.innerHTML = '';
         
-        // **CREAR SECCIONES POR HORARIO**
-        const horarios = ['11:00 AM', '3:00 PM', '9:00 PM', 'super'];
-        const emojisHorario = {
-            '11:00 AM': '🌅',
-            '3:00 PM': '☀️',
-            '9:00 PM': '🌙',
-            'super': '🎰'
-        };
-        const nombresHorario = {
+        // Renderizar secciones
+        const HORARIOS = ['11:00 AM', '3:00 PM', '9:00 PM', 'super'];
+        const EMOJIS = { '11:00 AM': '🌅', '3:00 PM': '☀️', '9:00 PM': '🌙', 'super': '🎰' };
+        const NOMBRES = { 
             '11:00 AM': 'SORTEO DE LA MAÑANA',
             '3:00 PM': 'SORTEO DE LA TARDE',
             '9:00 PM': 'SORTEO DE LA NOCHE',
             'super': 'SÚPER PREMIO'
         };
         
-        horarios.forEach(horario => {
-            const sorteosDeLaHora = gruposPorHorario[horario];
+        // Fragment para mejor performance
+        const fragment = document.createDocumentFragment();
+        
+        HORARIOS.forEach(h => {
+            const sorteosDeLaHora = grupos[h];
+            if (!sorteosDeLaHora?.length) return;
             
-            // Solo mostrar sección si hay sorteos
-            if (sorteosDeLaHora && sorteosDeLaHora.length > 0) {
-                // Crear sección
-                const section = document.createElement('div');
-                section.className = 'sorteo-section';
-                
-                // Crear header (sin mostrar hora para Súper Premio)
-                const header = document.createElement('h2');
-                header.className = 'sorteo-header';
-                if (horario === 'super') {
-                    header.textContent = `${emojisHorario[horario]} ${nombresHorario[horario]}`;
-                } else {
-                    header.textContent = `${emojisHorario[horario]} ${nombresHorario[horario]} - ${horario}`;
-                }
-                
-                // Crear grid para esta sección
-                const grid = document.createElement('div');
-                grid.className = 'sorteo-grid';
-                
-                // Agregar cards al grid
-                sorteosDeLaHora.forEach(([key, datos]) => {
-                    grid.appendChild(crearCardJuego(key, datos));
-                });
-                
-                // Ensamblar sección
-                section.appendChild(header);
-                section.appendChild(grid);
-                
-                // Agregar al contenido principal
-                contenido.appendChild(section);
-            }
+            const section = document.createElement('div');
+            section.className = 'sorteo-section';
+            
+            const header = document.createElement('h2');
+            header.className = 'sorteo-header';
+            header.textContent = h === 'super' 
+                ? `${EMOJIS[h]} ${NOMBRES[h]}` 
+                : `${EMOJIS[h]} ${NOMBRES[h]} - ${h}`;
+            
+            const grid = document.createElement('div');
+            grid.className = 'sorteo-grid';
+            
+            sorteosDeLaHora.forEach(([key, datos]) => {
+                grid.appendChild(crearCardJuego(key, datos));
+            });
+            
+            section.appendChild(header);
+            section.appendChild(grid);
+            fragment.appendChild(section);
         });
+        
+        DOM.contenido.appendChild(fragment);
         
     } catch (error) {
         console.error('Error:', error);
-        const contenido = document.getElementById('contenido');
-        if (contenido) {
-            contenido.innerHTML = `
-                <div class="error-message">
-                    ⚠️ Error al cargar los resultados<br>
-                    <small>${error.message}</small>
-                </div>
-            `;
+        if (DOM.contenido) {
+            DOM.contenido.innerHTML = `<div class="error-message">⚠️ Error al cargar los resultados<br><small>${error.message}</small></div>`;
         }
     } finally {
-        const loading = document.getElementById('loading');
-        if (loading) {
-            loading.style.display = 'none';
-        }
+        if (DOM.loading) DOM.loading.style.display = 'none';
     }
 }
 
-// Cargar resultados al iniciar
-cargarResultados();
-
-// Actualizar según horarios de sorteo
-// Durante sorteos (11:00-11:30, 15:00-15:30, 21:00-21:30): cada 1 minuto
-// Resto del día: cada 5 minutos
-
+// ============================================
+// SISTEMA DE ACTUALIZACIÓN (Optimizado)
+// ============================================
 function obtenerIntervaloActualizacion() {
     const ahora = new Date();
-    const offsetHonduras = -6;
     const utc = ahora.getTime() + (ahora.getTimezoneOffset() * 60000);
-    const horaHonduras = new Date(utc + (3600000 * offsetHonduras));
+    const horaHN = new Date(utc - 21600000);
     
-    const hour = horaHonduras.getHours();
-    const minute = horaHonduras.getMinutes();
+    const h = horaHN.getHours();
+    const m = horaHN.getMinutes();
     
-    // Durante ventanas de sorteo: actualizar cada 1 minuto
-    if (
-        (hour === 11 && minute >= 0 && minute <= 30) ||
-        (hour === 15 && minute >= 0 && minute <= 30) ||
-        (hour === 21 && minute >= 0 && minute <= 30)
-    ) {
-        return 1 * 60 * 1000; // 1 minuto
+    // Durante sorteos: cada 1 min
+    if ((h === 11 || h === 15 || h === 21) && m <= 30) {
+        return CONFIG.INTERVALO_SORTEO;
     }
     
-    // Resto del día: cada 5 minutos
-    return 5 * 60 * 1000;
+    return CONFIG.INTERVALO_NORMAL;
 }
 
-// Función para recargar con intervalo dinámico
-function programarSiguienteActualizacion() {
-    const intervalo = obtenerIntervaloActualizacion();
+function programarActualizacion() {
     setTimeout(() => {
         cargarResultados();
-        programarSiguienteActualizacion(); // Reprogramar
-    }, intervalo);
+        programarActualizacion();
+    }, obtenerIntervaloActualizacion());
 }
 
-// Iniciar ciclo de actualizaciones
-programarSiguienteActualizacion();
-
-
 // ============================================
-// RULETA DE NÚMEROS DE LA SUERTE
+// RULETA DE NÚMEROS (Optimizado)
 // ============================================
+let ruletaActiva = false;
 
-// Ocultar tooltip después de 10 segundos
 setTimeout(() => {
     const tooltip = document.getElementById('ruletaTooltip');
     if (tooltip) tooltip.classList.add('hidden');
@@ -514,68 +362,55 @@ function mostrarRuleta() {
     if (overlay) overlay.classList.add('active');
     if (tooltip) tooltip.classList.add('hidden');
     
-    // Reset display
-    if (display) {
-        display.innerHTML = `
-            <div class="spinning-number">000</div>
-            <p style="color: #999; margin-top: 20px;">Haz clic en "Girar" para descubrir tus números</p>
-        `;
+    if (display && !ruletaActiva) {
+        display.innerHTML = '<div class="spinning-number">000</div><p style="color:#999;margin-top:20px">Haz clic en "Girar" para descubrir tus números</p>';
     }
 }
 
-function cerrarRuleta(event) {
-    if (event && event.target !== event.currentTarget) return;
+function cerrarRuleta(e) {
+    if (e && e.target !== e.currentTarget) return;
     const overlay = document.getElementById('ruletaOverlay');
     if (overlay) overlay.classList.remove('active');
+    ruletaActiva = false;
 }
 
 function girarRuleta() {
+    if (ruletaActiva) return;
+    ruletaActiva = true;
+    
     const display = document.getElementById('ruletaDisplay');
-    const button = event.target;
+    const btn = event.target;
     
-    if (!display || !button) return;
+    if (!display || !btn) return;
     
-    // Deshabilitar botón mientras gira
-    button.disabled = true;
-    button.classList.add('spinning');
-    button.textContent = '🎲 Girando...';
+    btn.disabled = true;
+    btn.classList.add('spinning');
+    btn.textContent = '🎲 Girando...';
     
-    // Mostrar números girando
     display.innerHTML = '<div class="spinning-number" id="spinningNum">000</div>';
     
     let counter = 0;
     const spinInterval = setInterval(() => {
-        const spinningNum = document.getElementById('spinningNum');
-        if (spinningNum) {
-            spinningNum.textContent = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-        }
-        counter++;
+        const num = document.getElementById('spinningNum');
+        if (num) num.textContent = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
     }, 50);
     
-    // Después de 3 segundos, mostrar los números finales
     setTimeout(() => {
         clearInterval(spinInterval);
         mostrarNumerosSuerte();
-        
-        // Reactivar botón
-        button.disabled = false;
-        button.classList.remove('spinning');
-        button.textContent = '🎲 Girar Otra Vez';
-        
-        // Crear confetti
         crearConfetti();
+        
+        btn.disabled = false;
+        btn.classList.remove('spinning');
+        btn.textContent = '🎲 Girar Otra Vez';
+        ruletaActiva = false;
     }, 3000);
 }
 
 function mostrarNumerosSuerte() {
-    const numeros = [];
-    
-    // Generar 4 números únicos entre 00 y 99
-    while(numeros.length < 4) {
-        const num = Math.floor(Math.random() * 100);
-        if (!numeros.includes(num)) {
-            numeros.push(num);
-        }
+    const numeros = new Set();
+    while(numeros.size < 4) {
+        numeros.add(Math.floor(Math.random() * 100));
     }
     
     const mensajes = [
@@ -587,39 +422,46 @@ function mostrarNumerosSuerte() {
         "¡Tu día de suerte ha llegado!"
     ];
     
-    const mensajeAleatorio = mensajes[Math.floor(Math.random() * mensajes.length)];
-    
     const display = document.getElementById('ruletaDisplay');
     if (display) {
         display.innerHTML = `
             <div class="numeros-suerte-display">
-                ${numeros.map(num => `
-                    <div class="numero-suerte">${num.toString().padStart(2, '0')}</div>
-                `).join('')}
+                ${[...numeros].map(n => `<div class="numero-suerte">${String(n).padStart(2,'0')}</div>`).join('')}
             </div>
-            <div class="mensaje-suerte">✨ ${mensajeAleatorio} ✨</div>
+            <div class="mensaje-suerte">✨ ${mensajes[Math.floor(Math.random() * mensajes.length)]} ✨</div>
         `;
     }
 }
 
 function crearConfetti() {
-    const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#ffd700', '#00ff88'];
+    const colors = ['#667eea','#764ba2','#f093fb','#f5576c','#ffd700','#00ff88'];
     const overlay = document.getElementById('ruletaOverlay');
-    
     if (!overlay) return;
     
     for (let i = 0; i < 50; i++) {
         setTimeout(() => {
-            const confetti = document.createElement('div');
-            confetti.className = 'confetti';
-            confetti.style.left = Math.random() * 100 + '%';
-            confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
-            confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
-            confetti.style.width = confetti.style.height = (Math.random() * 10 + 5) + 'px';
-            
-            overlay.appendChild(confetti);
-            
-            setTimeout(() => confetti.remove(), 3000);
+            const c = document.createElement('div');
+            c.className = 'confetti';
+            c.style.cssText = `
+                left:${Math.random()*100}%;
+                background:${colors[Math.floor(Math.random()*colors.length)]};
+                animation-duration:${Math.random()*2+2}s;
+                width:${Math.random()*10+5}px;
+                height:${Math.random()*10+5}px
+            `;
+            overlay.appendChild(c);
+            setTimeout(() => c.remove(), 3000);
         }, i * 30);
     }
 }
+
+// ============================================
+// INICIALIZACIÓN
+// ============================================
+document.addEventListener('DOMContentLoaded', () => {
+    initDOM();
+    actualizarReloj();
+    cargarResultados();
+    programarActualizacion();
+});
+
