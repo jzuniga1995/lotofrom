@@ -648,8 +648,7 @@ footer p{
     line-height:1.8;
     width:100%;
     overflow-wrap:break-word;
-    contain:layout style paint;
-    min-height:3000px;
+    
 }
 
 .seo-content h2{
@@ -936,7 +935,6 @@ footer p{
     .footer-links{flex-direction:column;gap:10px}
     .footer-links a{display:block}
     footer{margin-top:40px;padding:25px 15px}
-    .seo-content{padding:20px;margin:20px 10px;width:calc(100% - 20px);min-height:4000px}
     .seo-content h2{font-size:1.5em}
     .tips-grid{grid-template-columns:1fr}
     .stats-table{font-size:.85em}
@@ -1035,3 +1033,5 @@ footer p{
     footer{margin-top:20px;padding:15px 10px}
     .seo-content{padding:15px;margin:15px 5px}
 }
+
+
