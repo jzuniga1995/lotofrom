@@ -1,14 +1,34 @@
 // ============================================
-// CONFIGURACIÓN Y CACHE DE ELEMENTOS DOM
+// CONFIGURACIÓN Y GESTIÓN DE RECURSOS
 // ============================================
 const CONFIG = {
     JSON_URL: '/api/resultados-v2',
     DATOS_EMBEBIDOS: null,
-    INTERVALO_SORTEO: 60000, // 1 min
-    INTERVALO_NORMAL: 300000 // 5 min
+    INTERVALO_SORTEO: 60000,
+    INTERVALO_NORMAL: 300000
 };
 
-// Cache de elementos DOM (evita múltiples queries)
+// Sistema de limpieza de recursos
+const RECURSOS = {
+    timers: new Set(),
+    intervals: new Set(),
+    observers: new Set(),
+    
+    addTimer(id) { this.timers.add(id); },
+    addInterval(id) { this.intervals.add(id); },
+    addObserver(obs) { this.observers.add(obs); },
+    
+    cleanup() {
+        this.timers.forEach(clearTimeout);
+        this.intervals.forEach(clearInterval);
+        this.observers.forEach(obs => obs.disconnect());
+        this.timers.clear();
+        this.intervals.clear();
+        this.observers.clear();
+    }
+};
+
+// Cache de elementos DOM
 const DOM = {
     reloj: null,
     fecha: null,
@@ -17,13 +37,43 @@ const DOM = {
     loading: null
 };
 
-// Inicializar cache DOM
 function initDOM() {
     DOM.reloj = document.getElementById('relojHonduras');
     DOM.fecha = document.getElementById('fechaActual');
     DOM.actualizacion = document.getElementById('ultimaActualizacion');
     DOM.contenido = document.getElementById('contenido');
     DOM.loading = document.getElementById('loading');
+}
+
+// ============================================
+// UTILIDADES DE RENDIMIENTO
+// ============================================
+
+// Debounce optimizado
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+        RECURSOS.addTimer(timeout);
+    };
+}
+
+// Throttle optimizado
+function throttle(func, limit) {
+    let inThrottle;
+    return function(...args) {
+        if (!inThrottle) {
+            func.apply(this, args);
+            inThrottle = true;
+            const timer = setTimeout(() => inThrottle = false, limit);
+            RECURSOS.addTimer(timer);
+        }
+    };
 }
 
 // ============================================
@@ -46,19 +96,42 @@ function obtenerTipoJuego() {
 }
 
 // ============================================
-// RELOJ HONDURAS (Optimizado)
+// RELOJ HONDURAS CON RAF (OPTIMIZADO)
 // ============================================
-function actualizarReloj() {
+let animationFrameId = null;
+let ultimaActualizacionReloj = 0;
+
+function actualizarReloj(timestamp = 0) {
+    // Throttle a 1 segundo usando RAF
+    if (timestamp - ultimaActualizacionReloj < 1000) {
+        animationFrameId = requestAnimationFrame(actualizarReloj);
+        return;
+    }
+    
+    ultimaActualizacionReloj = timestamp;
+    
     if (!DOM.reloj) return;
     
     const ahora = new Date();
     const utc = ahora.getTime() + (ahora.getTimezoneOffset() * 60000);
-    const horaHN = new Date(utc - 21600000); // UTC-6 en ms
+    const horaHN = new Date(utc - 21600000);
     
     DOM.reloj.textContent = horaHN.toTimeString().slice(0, 8);
+    
+    animationFrameId = requestAnimationFrame(actualizarReloj);
 }
 
-setInterval(actualizarReloj, 1000);
+function iniciarReloj() {
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    animationFrameId = requestAnimationFrame(actualizarReloj);
+}
+
+function detenerReloj() {
+    if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+    }
+}
 
 // ============================================
 // UTILIDADES (Optimizadas)
@@ -106,8 +179,8 @@ const MAPEO_HORAS = {
 const ORDEN_JUEGOS = ['juga3', 'pega3', 'premia2', 'diaria', 'super'];
 
 function agruparPorHorario(sorteos) {
-    // Reset grupos
-    Object.keys(GRUPOS_HORARIO).forEach(k => GRUPOS_HORARIO[k] = []);
+    // Reset grupos (reuso de arrays)
+    Object.keys(GRUPOS_HORARIO).forEach(k => GRUPOS_HORARIO[k].length = 0);
     
     sorteos.forEach(([key, datos]) => {
         const keyLower = key.toLowerCase();
@@ -133,14 +206,43 @@ function agruparPorHorario(sorteos) {
 }
 
 // ============================================
-// CREAR CARDS (Optimizado con templates)
+// LAZY LOADING DE IMÁGENES (NUEVO)
+// ============================================
+let imageObserver = null;
+
+function initLazyLoading() {
+    if ('IntersectionObserver' in window) {
+        imageObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    const src = img.dataset.src;
+                    if (src) {
+                        img.src = src;
+                        img.removeAttribute('data-src');
+                        imageObserver.unobserve(img);
+                    }
+                }
+            });
+        }, { rootMargin: '50px' });
+        
+        RECURSOS.addObserver(imageObserver);
+    }
+}
+
+// ============================================
+// CREAR CARDS (OPTIMIZADO)
 // ============================================
 function crearCardJuego(key, datos) {
     const card = document.createElement('div');
     card.className = 'game-card';
     
     const nombreBase = datos.nombre_juego.replace(/\s*(11:00 AM|3:00 PM|9:00 PM|10:00 AM|2:00 PM)/gi, '').trim();
-    const logo = datos.logo_url ? `<img src="${datos.logo_url}" alt="${nombreBase}" class="game-logo" onerror="this.style.display='none'">` : '';
+    
+    // Lazy loading para imágenes
+    const logo = datos.logo_url 
+        ? `<img data-src="${datos.logo_url}" alt="${nombreBase}" class="game-logo" onerror="this.style.display='none'">`
+        : '';
     
     let contenido = '';
     
@@ -189,6 +291,12 @@ function crearCardJuego(key, datos) {
         ${sinResultados ? '<div style="text-align:center"><span class="estado-badge">⏳ Próximamente</span></div>' : ''}
     `;
     
+    // Observar imágenes para lazy loading
+    if (imageObserver && logo) {
+        const img = card.querySelector('img[data-src]');
+        if (img) imageObserver.observe(img);
+    }
+    
     return card;
 }
 
@@ -209,17 +317,14 @@ function ordenarPorFechaYHora(sorteos) {
         const [diaA, mesA, yearA = new Date().getFullYear()] = datosA.fecha_sorteo.split('-').map(Number);
         const [diaB, mesB, yearB = new Date().getFullYear()] = datosB.fecha_sorteo.split('-').map(Number);
         
-        // Ordenar por fecha (reciente primero)
         if (yearA !== yearB) return yearB - yearA;
         if (mesA !== mesB) return mesB - mesA;
         if (diaA !== diaB) return diaB - diaA;
         
-        // Ordenar por hora
         const horaA = ORDEN_HORAS[datosA.hora_sorteo] || 0;
         const horaB = ORDEN_HORAS[datosB.hora_sorteo] || 0;
         if (horaA !== horaB) return horaA - horaB;
         
-        // Ordenar por tipo
         const tipoA = ORDEN_JUEGOS.findIndex(t => keyA.includes(t));
         const tipoB = ORDEN_JUEGOS.findIndex(t => keyB.includes(t));
         return tipoA - tipoB;
@@ -227,10 +332,16 @@ function ordenarPorFechaYHora(sorteos) {
 }
 
 // ============================================
-// CARGAR RESULTADOS (Optimizado)
+// CARGAR RESULTADOS (Optimizado con AbortController)
 // ============================================
+let abortController = null;
+
 async function cargarResultados() {
     try {
+        // Cancelar petición anterior si existe
+        if (abortController) abortController.abort();
+        abortController = new AbortController();
+        
         let data;
         
         if (CONFIG.DATOS_EMBEBIDOS) {
@@ -238,18 +349,21 @@ async function cargarResultados() {
         } else {
             const res = await fetch(`${CONFIG.JSON_URL}?t=${Date.now()}`, {
                 cache: 'no-store',
-                headers: { 'Cache-Control': 'no-cache' }
+                headers: { 'Cache-Control': 'no-cache' },
+                signal: abortController.signal
             });
             
             if (!res.ok) throw new Error('Error al cargar resultados');
             data = await res.json();
         }
         
-        // Actualizar UI
-        if (DOM.fecha) DOM.fecha.textContent = formatearFecha();
-        if (DOM.actualizacion && data.fecha_actualizacion) {
-            DOM.actualizacion.textContent = data.fecha_actualizacion;
-        }
+        // Actualizar UI (batch)
+        requestAnimationFrame(() => {
+            if (DOM.fecha) DOM.fecha.textContent = formatearFecha();
+            if (DOM.actualizacion && data.fecha_actualizacion) {
+                DOM.actualizacion.textContent = data.fecha_actualizacion;
+            }
+        });
         
         if (!DOM.contenido) return;
         
@@ -265,10 +379,9 @@ async function cargarResultados() {
         const sorteosOrdenados = ordenarPorFechaYHora(sorteosFiltrados);
         const grupos = agruparPorHorario(sorteosOrdenados);
         
-        // Limpiar contenido
-        DOM.contenido.innerHTML = '';
+        // Renderizar con fragment (mejor rendimiento)
+        const fragment = document.createDocumentFragment();
         
-        // Renderizar secciones
         const HORARIOS = ['11:00 AM', '3:00 PM', '9:00 PM', 'super'];
         const EMOJIS = { '11:00 AM': '🌅', '3:00 PM': '☀️', '9:00 PM': '🌙', 'super': '🎰' };
         const NOMBRES = { 
@@ -277,9 +390,6 @@ async function cargarResultados() {
             '9:00 PM': 'SORTEO DE LA NOCHE',
             'super': 'SÚPER PREMIO'
         };
-        
-        // Fragment para mejor performance
-        const fragment = document.createDocumentFragment();
         
         HORARIOS.forEach(h => {
             const sorteosDeLaHora = grupos[h];
@@ -306,21 +416,33 @@ async function cargarResultados() {
             fragment.appendChild(section);
         });
         
-        DOM.contenido.appendChild(fragment);
+        // Actualizar DOM en una sola operación
+        requestAnimationFrame(() => {
+            DOM.contenido.innerHTML = '';
+            DOM.contenido.appendChild(fragment);
+        });
         
     } catch (error) {
+        if (error.name === 'AbortError') return; // Ignorar cancelaciones
+        
         console.error('Error:', error);
         if (DOM.contenido) {
             DOM.contenido.innerHTML = `<div class="error-message">⚠️ Error al cargar los resultados<br><small>${error.message}</small></div>`;
         }
     } finally {
-        if (DOM.loading) DOM.loading.style.display = 'none';
+        if (DOM.loading) {
+            requestAnimationFrame(() => {
+                DOM.loading.style.display = 'none';
+            });
+        }
     }
 }
 
 // ============================================
-// SISTEMA DE ACTUALIZACIÓN (Optimizado)
+// SISTEMA DE ACTUALIZACIÓN (Optimizado con gestión)
 // ============================================
+let updateTimerId = null;
+
 function obtenerIntervaloActualizacion() {
     const ahora = new Date();
     const utc = ahora.getTime() + (ahora.getTimezoneOffset() * 60000);
@@ -329,7 +451,6 @@ function obtenerIntervaloActualizacion() {
     const h = horaHN.getHours();
     const m = horaHN.getMinutes();
     
-    // Durante sorteos: cada 1 min
     if ((h === 11 || h === 15 || h === 21) && m <= 30) {
         return CONFIG.INTERVALO_SORTEO;
     }
@@ -338,21 +459,50 @@ function obtenerIntervaloActualizacion() {
 }
 
 function programarActualizacion() {
-    setTimeout(() => {
+    if (updateTimerId) clearTimeout(updateTimerId);
+    
+    updateTimerId = setTimeout(() => {
         cargarResultados();
         programarActualizacion();
     }, obtenerIntervaloActualizacion());
+    
+    RECURSOS.addTimer(updateTimerId);
+}
+
+function detenerActualizacion() {
+    if (updateTimerId) {
+        clearTimeout(updateTimerId);
+        updateTimerId = null;
+    }
 }
 
 // ============================================
-// RULETA DE NÚMEROS (Optimizado)
+// RULETA DE NÚMEROS (OPTIMIZADO CON RAF)
 // ============================================
 let ruletaActiva = false;
+let tooltipTimer = null;
 
-setTimeout(() => {
+// Pool de confetti para reutilización
+const confettiPool = [];
+const MAX_CONFETTI = 50;
+
+function initConfettiPool() {
+    for (let i = 0; i < MAX_CONFETTI; i++) {
+        const c = document.createElement('div');
+        c.className = 'confetti';
+        c.style.display = 'none';
+        confettiPool.push(c);
+    }
+}
+
+function ocultarTooltip() {
     const tooltip = document.getElementById('ruletaTooltip');
     if (tooltip) tooltip.classList.add('hidden');
-}, 10000);
+}
+
+// Iniciar timer para ocultar tooltip
+tooltipTimer = setTimeout(ocultarTooltip, 10000);
+RECURSOS.addTimer(tooltipTimer);
 
 function mostrarRuleta() {
     const overlay = document.getElementById('ruletaOverlay');
@@ -374,6 +524,7 @@ function cerrarRuleta(e) {
     ruletaActiva = false;
 }
 
+// Animación de giro con RAF (más suave)
 function girarRuleta() {
     if (ruletaActiva) return;
     ruletaActiva = true;
@@ -389,22 +540,32 @@ function girarRuleta() {
     
     display.innerHTML = '<div class="spinning-number" id="spinningNum">000</div>';
     
-    let counter = 0;
-    const spinInterval = setInterval(() => {
-        const num = document.getElementById('spinningNum');
-        if (num) num.textContent = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
-    }, 50);
+    const startTime = performance.now();
+    const duration = 3000;
+    let rafId;
     
-    setTimeout(() => {
-        clearInterval(spinInterval);
-        mostrarNumerosSuerte();
-        crearConfetti();
+    function animate(currentTime) {
+        const elapsed = currentTime - startTime;
         
-        btn.disabled = false;
-        btn.classList.remove('spinning');
-        btn.textContent = '🎲 Girar Otra Vez';
-        ruletaActiva = false;
-    }, 3000);
+        if (elapsed < duration) {
+            const num = document.getElementById('spinningNum');
+            if (num) {
+                num.textContent = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
+            }
+            rafId = requestAnimationFrame(animate);
+        } else {
+            // Finalizar animación
+            mostrarNumerosSuerte();
+            crearConfetti();
+            
+            btn.disabled = false;
+            btn.classList.remove('spinning');
+            btn.textContent = '🎲 Girar Otra Vez';
+            ruletaActiva = false;
+        }
+    }
+    
+    rafId = requestAnimationFrame(animate);
 }
 
 function mostrarNumerosSuerte() {
@@ -438,30 +599,79 @@ function crearConfetti() {
     const overlay = document.getElementById('ruletaOverlay');
     if (!overlay) return;
     
-    for (let i = 0; i < 50; i++) {
+    // Reutilizar elementos del pool
+    for (let i = 0; i < Math.min(50, confettiPool.length); i++) {
         setTimeout(() => {
-            const c = document.createElement('div');
-            c.className = 'confetti';
+            const c = confettiPool[i];
+            if (!c) return;
+            
             c.style.cssText = `
+                display:block;
                 left:${Math.random()*100}%;
                 background:${colors[Math.floor(Math.random()*colors.length)]};
                 animation-duration:${Math.random()*2+2}s;
                 width:${Math.random()*10+5}px;
                 height:${Math.random()*10+5}px
             `;
-            overlay.appendChild(c);
-            setTimeout(() => c.remove(), 3000);
+            
+            if (!c.parentElement) overlay.appendChild(c);
+            
+            setTimeout(() => {
+                c.style.display = 'none';
+            }, 3000);
         }, i * 30);
     }
 }
 
 // ============================================
-// INICIALIZACIÓN
+// GESTIÓN DE VISIBILIDAD (Page Visibility API)
 // ============================================
-document.addEventListener('DOMContentLoaded', () => {
+function handleVisibilityChange() {
+    if (document.hidden) {
+        // Página oculta: pausar updates pesados
+        detenerReloj();
+        detenerActualizacion();
+    } else {
+        // Página visible: reanudar
+        iniciarReloj();
+        cargarResultados();
+        programarActualizacion();
+    }
+}
+
+// ============================================
+// INICIALIZACIÓN Y CLEANUP
+// ============================================
+function init() {
     initDOM();
-    actualizarReloj();
+    initLazyLoading();
+    initConfettiPool();
+    iniciarReloj();
     cargarResultados();
     programarActualizacion();
-});
+    
+    // Monitorear visibilidad
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+}
 
+function cleanup() {
+    detenerReloj();
+    detenerActualizacion();
+    RECURSOS.cleanup();
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
+}
+
+// Iniciar cuando el DOM esté listo
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
+
+// Cleanup al cerrar/cambiar página
+window.addEventListener('beforeunload', cleanup);
+
+// Exponer funciones globales necesarias
+window.mostrarRuleta = mostrarRuleta;
+window.cerrarRuleta = cerrarRuleta;
+window.girarRuleta = girarRuleta;

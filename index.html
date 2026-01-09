@@ -5,14 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
     <!-- ============== OPTIMIZACIÓN DE RENDIMIENTO ============== -->
-    <!-- Preload recursos críticos (Mejora LCP y FCP) -->
-    <link rel="preload" href="styles.css" as="style">
-    <link rel="preload" href="main.js" as="script">
-    
     <!-- Preconnect a dominios externos (Reduce TTFB) -->
     <link rel="preconnect" href="https://www.googletagmanager.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="dns-prefetch" href="https://pl28417320.effectivegatecpm.com">
     
     <!-- ============== SEO ULTRA AGRESIVO ============== -->
@@ -34,8 +28,10 @@
         script.src = 'https://www.googletagmanager.com/gtag/js?id=G-B9L2HSP4B6';
         document.head.appendChild(script);
         
-        gtag('js', new Date());
-        gtag('config', 'G-B9L2HSP4B6');
+        script.onload = () => {
+          gtag('js', new Date());
+          gtag('config', 'G-B9L2HSP4B6');
+        };
       }
       
       // Cargar en scroll, touch o después de 3s
@@ -266,40 +262,11 @@
       }
     </style>
     
-    <!-- ============== CSS COMPLETO (Lazy Load para no bloquear render) ============== -->
-    <link rel="stylesheet" href="styles.css" media="print" onload="this.media='all'">
+    <!-- ============== CSS COMPLETO (Lazy Load OPTIMIZADO) ============== -->
+    <link rel="preload" href="styles.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="styles.css"></noscript>
 </head>
 <body>
-    <!-- ============== CONTENIDO SEO OCULTO PARA CRAWLERS ============== -->
-    <div style="position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden;" aria-hidden="true">
-        <h1>Resultados Loto Honduras - Números Ganadores Actualizados en Tiempo Real</h1>
-        <h2>Sorteos Diarios de Loto Honduras 11AM 3PM 9PM</h2>
-        <p>Consulta GRATIS los resultados oficiales de todos los sorteos de Loto Honduras. Números ganadores de Jugá 3, Pega 3, Premia 2, La Diaria y Súper Premio actualizados automáticamente después de cada sorteo. Portal #1 de Honduras para verificar tu boleto ganador.</p>
-        
-        <h3>Juegos Disponibles en Loto Honduras</h3>
-        <ul>
-            <li>Jugá 3 Honduras - Resultados actualizados del sorteo de 3 dígitos. Números del 000 al 999. Premios mayores.</li>
-            <li>Pega 3 Honduras - Números ganadores hoy. Sorteo tres veces al día. Coincide 3 números y gana.</li>
-            <li>Premia 2 Honduras - Sorteos en vivo. Apuesta de 2 dígitos del 00 al 99. Resultados inmediatos.</li>
-            <li>La Diaria Honduras - Consulta resultados del sorteo diario especial. Premios acumulados.</li>
-            <li>Súper Premio Honduras - Números de la suerte. Sorteo millonario con premios gigantes.</li>
-        </ul>
-        
-        <h3>Horarios de Sorteos Loto Honduras</h3>
-        <ul>
-            <li>Sorteo Matutino: 11:00 AM hora de Honduras - Jugá 3, Pega 3, Premia 2</li>
-            <li>Sorteo Vespertino: 3:00 PM hora de Honduras - Todos los juegos disponibles</li>
-            <li>Sorteo Nocturno: 9:00 PM hora de Honduras - Sorteo principal con premios mayores</li>
-        </ul>
-        
-        <h3>Ciudades de Honduras donde puedes jugar Loto</h3>
-        <p>Tegucigalpa, San Pedro Sula, La Ceiba, Choloma, El Progreso, Choluteca, Comayagua, Puerto Cortés, La Lima, Danlí, Siguatepeque, Juticalpa, Tocoa, Villanueva, Cofradía, Tela, Santa Rosa de Copán, Olanchito, Santa Bárbara, Potrerillos, Catacamas, La Entrada.</p>
-        
-        <h3>Palabras clave relacionadas</h3>
-        <p>loto honduras resultados hoy, números ganadores loto, sorteos loto hn, juga 3 resultados, pega 3 honduras hoy, premia 2 ganadores, la diaria resultados, super premio honduras, como ganar loto honduras, estadisticas loto, números calientes loto, números fríos loto, probabilidades juga 3, cuanto paga pega 3, donde cobrar loto, agencias loto honduras, boleto ganador, verificar boleto loto, historico resultados loto, resultados ayer loto, resultados semana loto, premios loto honduras, ganadores loto honduras hoy, sorteo en vivo loto, loto honduras online, consultar loto gratis.</p>
-    </div>
-
     <!-- ============== NAVEGACIÓN PRINCIPAL ============== -->
     <nav class="main-nav">
         <a href="index" class="active">🏠 Inicio</a>
@@ -673,5 +640,8 @@
 
     <!-- ============== JAVASCRIPT CON DEFER (No bloquea render) ============== -->
     <script defer src="main.js"></script>
+    
+    <!-- Cloudflare Analytics al FINAL (menor impacto en rendimiento) -->
+    <script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon='{"version":"2024.11.0","token":"17b6e4cf13aa4d1db4f7ed026306c7ac","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfOrigin":true,"cfSpeedBrain":true}}}' crossorigin="anonymous"></script>
 </body>
 </html>
