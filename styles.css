@@ -648,7 +648,8 @@ footer p{
     line-height:1.8;
     width:100%;
     overflow-wrap:break-word;
-    contain:layout style;
+    contain:layout style paint;
+    min-height:3000px;
 }
 
 .seo-content h2{
@@ -691,6 +692,7 @@ footer p{
     border-radius:10px;
     margin:25px 0;
     box-shadow:0 4px 12px rgba(102,126,234,.3);
+    min-height:120px;
 }
 
 .tips-grid{
@@ -705,6 +707,7 @@ footer p{
     padding:20px;
     border-radius:10px;
     border-left:4px solid #667eea;
+    min-height:150px;
 }
 
 .tip-card h4{
@@ -721,8 +724,8 @@ footer p{
     display:block;
     overflow-x:auto;
     -webkit-overflow-scrolling:touch;
+    table-layout:fixed;
 }
-
 .stats-table thead,.stats-table tbody,.stats-table tr{
     display:table;
     width:100%;
@@ -933,7 +936,7 @@ footer p{
     .footer-links{flex-direction:column;gap:10px}
     .footer-links a{display:block}
     footer{margin-top:40px;padding:25px 15px}
-    .seo-content{padding:20px;margin:20px 10px;width:calc(100% - 20px)}
+    .seo-content{padding:20px;margin:20px 10px;width:calc(100% - 20px);min-height:4000px}
     .seo-content h2{font-size:1.5em}
     .tips-grid{grid-template-columns:1fr}
     .stats-table{font-size:.85em}
