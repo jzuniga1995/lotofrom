@@ -92,12 +92,12 @@ header h1 {
 }
 
 /* ============================================ */
-/* RULETA                                      */
+/* RULETA - MEJORADA PARA NO TAPAR NAVEGACIÓN */
 /* ============================================ */
 
 .ruleta-container {
     position: fixed;
-    top: 20px;
+    bottom: 20px;
     right: 20px;
     z-index: 1000;
 }
@@ -114,6 +114,7 @@ header h1 {
     display: flex;
     align-items: center;
     gap: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .ruleta-button:hover {
@@ -122,7 +123,7 @@ header h1 {
 
 .tooltip {
     position: absolute;
-    bottom: -80px;
+    bottom: 70px;
     right: 0;
     background: var(--white);
     color: #333;
@@ -132,16 +133,17 @@ header h1 {
     font-size: 0.9em;
     font-weight: 600;
     pointer-events: none;
+    white-space: nowrap;
 }
 
-.tooltip::before {
+.tooltip::after {
     content: '';
     position: absolute;
-    top: -10px;
+    bottom: -10px;
     right: 30px;
     border-left: 10px solid transparent;
     border-right: 10px solid transparent;
-    border-bottom: 10px solid var(--white);
+    border-top: 10px solid var(--white);
 }
 
 .tooltip.hidden {
@@ -438,7 +440,7 @@ footer {
     text-align: center;
     color: var(--white);
     margin-top: 60px;
-    padding: 30px 20px;
+    padding: 30px 20px 100px;
     opacity: 0.95;
     border-top: 2px solid rgba(255, 255, 255, 0.2);
 }
@@ -650,18 +652,54 @@ footer p {
     body { padding: 10px; }
     header h1 { font-size: 2.2em; }
     .reloj { font-size: 1.1em; padding: 8px 20px; }
-    .ruleta-button { padding: 12px 20px; font-size: 0.95em; }
+    
+    /* Botón de ruleta más pequeño y abajo */
+    .ruleta-container {
+        bottom: 15px;
+        right: 15px;
+    }
+    
+    .ruleta-button { 
+        padding: 12px 20px; 
+        font-size: 0.95em; 
+    }
+    
+    .tooltip {
+        bottom: 65px;
+        max-width: 200px;
+        white-space: normal;
+    }
+    
     .games-grid { grid-template-columns: 1fr; }
     .game-logo { width: 80px; height: 80px; }
     .bola { width: 65px; height: 65px; font-size: 2em; }
     .main-nav { overflow-x: auto; justify-content: flex-start; }
+    
+    footer { padding-bottom: 90px; }
 }
 
 @media (max-width: 480px) {
     header h1 { font-size: 1.8em; }
     .reloj { font-size: 1em; padding: 6px 16px; }
-    .ruleta-container { bottom: 15px; right: 15px; }
-    .ruleta-button { padding: 10px 16px; font-size: 0.85em; }
+    
+    /* Botón más pequeño en móviles */
+    .ruleta-container {
+        bottom: 10px;
+        right: 10px;
+    }
+    
+    .ruleta-button { 
+        padding: 10px 16px; 
+        font-size: 0.85em;
+        gap: 6px;
+    }
+    
+    .tooltip {
+        bottom: 60px;
+        padding: 10px 15px;
+        font-size: 0.8em;
+    }
+    
     .game-card { padding: 18px; }
     .game-name { font-size: 1.25em; }
     .game-logo { width: 70px; height: 70px; }
@@ -672,6 +710,32 @@ footer p {
     header h1 { font-size: 1.6em; }
     .game-logo { width: 60px; height: 60px; }
     .bola { width: 50px; height: 50px; font-size: 1.5em; }
+    
+    /* Botón aún más pequeño */
+    .ruleta-button {
+        padding: 8px 12px;
+        font-size: 0.75em;
+    }
+}
+
+/* ============================================ */
+/* MEJORA: ASEGURAR QUE NO TAPE NAVEGACIÓN    */
+/* ============================================ */
+
+@media (max-width: 768px) {
+    /* Si la navegación está arriba (sticky), el botón siempre abajo */
+    body:has(.main-nav) .ruleta-container {
+        top: auto;
+        bottom: 15px;
+    }
+}
+
+/* Alternativa: Esconder el botón cuando scroll arriba en móvil */
+@media (max-width: 768px) {
+    .ruleta-container.hide-on-scroll {
+        opacity: 0;
+        pointer-events: none;
+    }
 }
 
 
