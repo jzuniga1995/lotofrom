@@ -87,12 +87,21 @@ const MAPEO_JUEGOS = {
     'loto-super-premio': 'super', 'super-premio': 'super', 'superpremio': 'super'
 };
 
+// Cache del tipo de juego (no cambia durante la sesión)
+let tipoJuegoCache = null;
+
 function obtenerTipoJuego() {
+    if (tipoJuegoCache) return tipoJuegoCache;
+    
     const path = window.location.pathname.toLowerCase();
     for (const key in MAPEO_JUEGOS) {
-        if (path.includes(key)) return MAPEO_JUEGOS[key];
+        if (path.includes(key)) {
+            tipoJuegoCache = MAPEO_JUEGOS[key];
+            return tipoJuegoCache;
+        }
     }
-    return 'todos';
+    tipoJuegoCache = 'todos';
+    return tipoJuegoCache;
 }
 
 // ============================================
@@ -138,9 +147,21 @@ function detenerReloj() {
 // ============================================
 const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 
+// Cache de fecha formateada
+let fechaCache = null;
+let fechaCacheTime = 0;
+
 function formatearFecha() {
+    const ahora = Date.now();
+    // Cache válido por 1 minuto
+    if (fechaCache && ahora - fechaCacheTime < 60000) {
+        return fechaCache;
+    }
+    
     const f = new Date();
-    return `${f.getDate()} de ${MESES[f.getMonth()]} de ${f.getFullYear()}`;
+    fechaCache = `${f.getDate()} de ${MESES[f.getMonth()]} de ${f.getFullYear()}`;
+    fechaCacheTime = ahora;
+    return fechaCache;
 }
 
 function formatearFechaSorteo(fecha) {
@@ -161,9 +182,14 @@ function formatearFechaSorteo(fecha) {
 function filtrarSorteos(sorteos, tipo) {
     if (tipo === 'todos') return sorteos;
     
-    return Object.fromEntries(
-        Object.entries(sorteos).filter(([key]) => key.toLowerCase().includes(tipo))
-    );
+    // Usar for..in en vez de Object.entries para mejor performance
+    const result = {};
+    for (const key in sorteos) {
+        if (key.toLowerCase().includes(tipo)) {
+            result[key] = sorteos[key];
+        }
+    }
+    return result;
 }
 
 const GRUPOS_HORARIO = {
@@ -206,7 +232,7 @@ function agruparPorHorario(sorteos) {
 }
 
 // ============================================
-// LAZY LOADING DE IMÁGENES (NUEVO)
+// LAZY LOADING DE IMÁGENES
 // ============================================
 let imageObserver = null;
 
@@ -233,6 +259,13 @@ function initLazyLoading() {
 // ============================================
 // CREAR CARDS (OPTIMIZADO)
 // ============================================
+
+// Template strings pre-compilados para mejor performance
+const TEMPLATES = {
+    pendiente: '<div class="pendiente">⏳ Pendiente</div>',
+    proximamente: '<div style="text-align:center"><span class="estado-badge">⏳ Próximamente</span></div>'
+};
+
 function crearCardJuego(key, datos) {
     const card = document.createElement('div');
     card.className = 'game-card';
@@ -251,26 +284,26 @@ function crearCardJuego(key, datos) {
             <div class="juga3-numero">
                 <div class="numeros-titulo">NÚMEROS GANADORES</div>
                 <div class="numeros-individuales">
-                    ${datos.numeros_individuales.map((n, i) => 
-                        `<div class="bola" style="animation-delay:${i*0.1}s">${n}</div>`
+                    ${datos.numeros_individuales.map(n => 
+                        `<div class="bola">${n}</div>`
                     ).join('')}
                 </div>
             </div>
-        ` : '<div class="pendiente">⏳ Pendiente</div>';
+        ` : TEMPLATES.pendiente;
     } else if (datos.numeros_adicionales?.length > 0) {
         const titulo = key.includes('diaria') ? 'NÚMERO · SIGNO · MULTIPLICADOR' : 'NÚMEROS GANADORES';
         contenido = `
             <div class="numeros-container">
                 <div class="numeros-titulo">${titulo}</div>
                 <div class="numeros-grid">
-                    ${datos.numeros_adicionales.map((n, i) => 
-                        `<div class="bola ${isNaN(n)?'texto':''}" style="animation-delay:${i*0.1}s">${n}</div>`
+                    ${datos.numeros_adicionales.map(n => 
+                        `<div class="bola ${isNaN(n)?'texto':''}">${n}</div>`
                     ).join('')}
                 </div>
             </div>
         `;
     } else {
-        contenido = '<div class="pendiente">⏳ Pendiente</div>';
+        contenido = TEMPLATES.pendiente;
     }
     
     const fechaConAnio = formatearFechaSorteo(datos.fecha_sorteo);
@@ -288,7 +321,7 @@ function crearCardJuego(key, datos) {
             </div>
         </div>
         ${contenido}
-        ${sinResultados ? '<div style="text-align:center"><span class="estado-badge">⏳ Próximamente</span></div>' : ''}
+        ${sinResultados ? TEMPLATES.proximamente : ''}
     `;
     
     // Observar imágenes para lazy loading
@@ -500,10 +533,6 @@ function ocultarTooltip() {
     if (tooltip) tooltip.classList.add('hidden');
 }
 
-// Iniciar timer para ocultar tooltip
-tooltipTimer = setTimeout(ocultarTooltip, 10000);
-RECURSOS.addTimer(tooltipTimer);
-
 function mostrarRuleta() {
     const overlay = document.getElementById('ruletaOverlay');
     const tooltip = document.getElementById('ruletaTooltip');
@@ -652,6 +681,10 @@ function init() {
     
     // Monitorear visibilidad
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // Ocultar tooltip después de 10 segundos
+    tooltipTimer = setTimeout(ocultarTooltip, 10000);
+    RECURSOS.addTimer(tooltipTimer);
 }
 
 function cleanup() {
