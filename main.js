@@ -1,537 +1,510 @@
 // ============================================
-// CONFIGURACIÓN Y GESTIÓN DE RECURSOS
-// ============================================
-const CONFIG = {
-    JSON_URL: '/api/resultados-v2',
-    DATOS_EMBEBIDOS: null,
-    INTERVALO_SORTEO: 60000,
-    INTERVALO_NORMAL: 300000
-};
-
-// Sistema de limpieza de recursos
-const RECURSOS = {
-    timers: new Set(),
-    intervals: new Set(),
-    observers: new Set(),
-    
-    addTimer(id) { this.timers.add(id); },
-    addInterval(id) { this.intervals.add(id); },
-    addObserver(obs) { this.observers.add(obs); },
-    
-    cleanup() {
-        this.timers.forEach(clearTimeout);
-        this.intervals.forEach(clearInterval);
-        this.observers.forEach(obs => obs.disconnect());
-        this.timers.clear();
-        this.intervals.clear();
-        this.observers.clear();
-    }
-};
-
-// Cache de elementos DOM
-const DOM = {
-    reloj: null,
-    fecha: null,
-    actualizacion: null,
-    contenido: null,
-    loading: null
-};
-
-function initDOM() {
-    DOM.reloj = document.getElementById('relojHonduras');
-    DOM.fecha = document.getElementById('fechaActual');
-    DOM.actualizacion = document.getElementById('ultimaActualizacion');
-    DOM.contenido = document.getElementById('contenido');
-    DOM.loading = document.getElementById('loading');
-}
-
-// ============================================
-// UTILIDADES DE RENDIMIENTO
+// CONFIGURACIÓN
 // ============================================
 
-// Debounce optimizado
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-        RECURSOS.addTimer(timeout);
-    };
-}
-
-// Throttle optimizado
-function throttle(func, limit) {
-    let inThrottle;
-    return function(...args) {
-        if (!inThrottle) {
-            func.apply(this, args);
-            inThrottle = true;
-            const timer = setTimeout(() => inThrottle = false, limit);
-            RECURSOS.addTimer(timer);
-        }
-    };
-}
+const JSON_URL = '/api/resultados-v2';
+const DATOS_EMBEBIDOS = null;
 
 // ============================================
-// DETECTAR TIPO DE JUEGO (Optimizado)
+// DETECTAR TIPO DE PÁGINA
 // ============================================
-const MAPEO_JUEGOS = {
-    'juga-3': 'juga3', 'juga3': 'juga3',
-    'pega-3': 'pega3', 'pega3': 'pega3',
-    'premia-2': 'premia2', 'premia2': 'premia2',
-    'la-diaria': 'diaria', 'diaria': 'diaria',
-    'loto-super-premio': 'super', 'super-premio': 'super', 'superpremio': 'super'
-};
-
-// Cache del tipo de juego (no cambia durante la sesión)
-let tipoJuegoCache = null;
 
 function obtenerTipoJuego() {
-    if (tipoJuegoCache) return tipoJuegoCache;
-    
     const path = window.location.pathname.toLowerCase();
-    for (const key in MAPEO_JUEGOS) {
+    
+    // Mapeo de URLs a tipos de juego
+    const mapeo = {
+        'juga-3': 'juga3',
+        'juga3': 'juga3',
+        'pega-3': 'pega3',
+        'pega3': 'pega3',
+        'premia-2': 'premia2',
+        'premia2': 'premia2',
+        'la-diaria': 'diaria',
+        'diaria': 'diaria',
+        'loto-super-premio': 'super',
+        'super-premio': 'super',
+        'superpremio': 'super'
+    };
+    
+    // Buscar coincidencia en el path
+    for (const [key, value] of Object.entries(mapeo)) {
         if (path.includes(key)) {
-            tipoJuegoCache = MAPEO_JUEGOS[key];
-            return tipoJuegoCache;
+            return value;
         }
     }
-    tipoJuegoCache = 'todos';
-    return tipoJuegoCache;
+    
+    return 'todos'; // Página principal - mostrar todos
 }
 
 // ============================================
-// RELOJ HONDURAS CON RAF (OPTIMIZADO)
+// RELOJ HONDURAS
 // ============================================
-let animationFrameId = null;
-let ultimaActualizacionReloj = 0;
 
-function actualizarReloj(timestamp = 0) {
-    // Throttle a 1 segundo usando RAF
-    if (timestamp - ultimaActualizacionReloj < 1000) {
-        animationFrameId = requestAnimationFrame(actualizarReloj);
-        return;
-    }
-    
-    ultimaActualizacionReloj = timestamp;
-    
-    if (!DOM.reloj) return;
-    
+function actualizarReloj() {
     const ahora = new Date();
+    
+    // Honduras está en UTC-6 (CST - Central Standard Time)
+    const offsetHonduras = -6;
     const utc = ahora.getTime() + (ahora.getTimezoneOffset() * 60000);
-    const horaHN = new Date(utc - 21600000);
+    const horaHonduras = new Date(utc + (3600000 * offsetHonduras));
     
-    DOM.reloj.textContent = horaHN.toTimeString().slice(0, 8);
+    const horas = String(horaHonduras.getHours()).padStart(2, '0');
+    const minutos = String(horaHonduras.getMinutes()).padStart(2, '0');
+    const segundos = String(horaHonduras.getSeconds()).padStart(2, '0');
     
-    animationFrameId = requestAnimationFrame(actualizarReloj);
-}
-
-function iniciarReloj() {
-    if (animationFrameId) cancelAnimationFrame(animationFrameId);
-    animationFrameId = requestAnimationFrame(actualizarReloj);
-}
-
-function detenerReloj() {
-    if (animationFrameId) {
-        cancelAnimationFrame(animationFrameId);
-        animationFrameId = null;
+    const relojElement = document.getElementById('relojHonduras');
+    if (relojElement) {
+        relojElement.textContent = `${horas}:${minutos}:${segundos}`;
     }
 }
 
-// ============================================
-// UTILIDADES (Optimizadas)
-// ============================================
-const MESES = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+// Actualizar reloj cada segundo
+setInterval(actualizarReloj, 1000);
+actualizarReloj();
 
-// Cache de fecha formateada
-let fechaCache = null;
-let fechaCacheTime = 0;
+// ============================================
+// UTILIDADES
+// ============================================
 
 function formatearFecha() {
-    const ahora = Date.now();
-    // Cache válido por 1 minuto
-    if (fechaCache && ahora - fechaCacheTime < 60000) {
-        return fechaCache;
+    const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+    const fecha = new Date();
+    return `${fecha.getDate()} de ${meses[fecha.getMonth()]} de ${fecha.getFullYear()}`;
+}
+
+// Nueva función para agregar año a la fecha del sorteo
+function formatearFechaSorteo(fechaSorteo) {
+    // Si la fecha ya tiene año (DD-MM-YYYY), retornarla tal cual
+    if (fechaSorteo && fechaSorteo.split('-').length === 3) {
+        return fechaSorteo;
     }
     
-    const f = new Date();
-    fechaCache = `${f.getDate()} de ${MESES[f.getMonth()]} de ${f.getFullYear()}`;
-    fechaCacheTime = ahora;
-    return fechaCache;
-}
-
-function formatearFechaSorteo(fecha) {
-    if (!fecha || fecha.includes('-') && fecha.split('-').length === 3) return fecha;
+    // Extraer día y mes
+    const [dia, mes] = fechaSorteo.split('-').map(Number);
     
-    const [dia, mes] = fecha.split('-').map(Number);
+    // Obtener fecha actual
     const ahora = new Date();
-    const year = (mes < ahora.getMonth() + 1 || (mes === ahora.getMonth() + 1 && dia <= ahora.getDate())) 
-        ? ahora.getFullYear() 
-        : ahora.getFullYear() - 1;
+    const yearActual = ahora.getFullYear();
+    const mesActual = ahora.getMonth() + 1; // 0-11 -> 1-12
+    const diaActual = ahora.getDate();
     
-    return `${fecha}-${year}`;
+    // Si el mes es menor al actual, o es el mismo mes pero el día es menor,
+    // entonces es del año actual. Si no, es del año pasado.
+    let year = yearActual;
+    
+    if (mes < mesActual || (mes === mesActual && dia < diaActual)) {
+        year = yearActual; // Fecha en el pasado de este año
+    } else if (mes > mesActual || (mes === mesActual && dia > diaActual)) {
+        year = yearActual - 1; // Fecha del año pasado
+    }
+    
+    return `${fechaSorteo}-${year}`;
 }
 
 // ============================================
-// FILTRAR Y AGRUPAR (Optimizado)
+// FILTRAR SORTEOS POR TIPO
 // ============================================
-function filtrarSorteos(sorteos, tipo) {
-    if (tipo === 'todos') return sorteos;
+
+function filtrarSorteos(sorteos, tipoJuego) {
+    if (tipoJuego === 'todos') {
+        return sorteos;
+    }
     
-    // Usar for..in en vez de Object.entries para mejor performance
-    const result = {};
-    for (const key in sorteos) {
-        if (key.toLowerCase().includes(tipo)) {
-            result[key] = sorteos[key];
+    const filtrados = {};
+    
+    for (const [key, value] of Object.entries(sorteos)) {
+        const keyLower = key.toLowerCase();
+        
+        // Coincidencia exacta del tipo de juego
+        if (keyLower.includes(tipoJuego)) {
+            filtrados[key] = value;
         }
     }
-    return result;
+    
+    return filtrados;
 }
 
-const GRUPOS_HORARIO = {
-    '11:00 AM': [], '3:00 PM': [], '9:00 PM': [], 'super': []
-};
-
-const MAPEO_HORAS = {
-    '11:00 AM': '11:00 AM', '10:00 AM': '11:00 AM',
-    '3:00 PM': '3:00 PM', '2:00 PM': '3:00 PM', '15:00': '3:00 PM',
-    '9:00 PM': '9:00 PM', '21:00': '9:00 PM'
-};
-
-const ORDEN_JUEGOS = ['juga3', 'pega3', 'premia2', 'diaria', 'super'];
+// ============================================
+// AGRUPAR SORTEOS POR HORARIO (NUEVA)
+// ============================================
 
 function agruparPorHorario(sorteos) {
-    // Reset grupos (reuso de arrays)
-    Object.keys(GRUPOS_HORARIO).forEach(k => GRUPOS_HORARIO[k].length = 0);
+    const grupos = {
+        '11:00 AM': [],
+        '3:00 PM': [],
+        '9:00 PM': [],
+        'super': [] // Grupo especial para Súper Premio
+    };
+    
+    const mapeoHoras = {
+        '11:00 AM': '11:00 AM',
+        '10:00 AM': '11:00 AM',
+        '3:00 PM': '3:00 PM',
+        '2:00 PM': '3:00 PM',
+        '15:00': '3:00 PM',
+        '9:00 PM': '9:00 PM',
+        '21:00': '9:00 PM'
+    };
     
     sorteos.forEach(([key, datos]) => {
         const keyLower = key.toLowerCase();
         
+        // Si es Súper Premio, va al grupo especial
         if (keyLower.includes('super')) {
-            GRUPOS_HORARIO['super'].push([key, datos]);
+            grupos['super'].push([key, datos]);
         } else {
-            const horaNorm = MAPEO_HORAS[datos.hora_sorteo];
-            if (horaNorm) GRUPOS_HORARIO[horaNorm].push([key, datos]);
+            const horaOriginal = datos.hora_sorteo;
+            const horaNormalizada = mapeoHoras[horaOriginal];
+            
+            if (horaNormalizada && grupos[horaNormalizada]) {
+                grupos[horaNormalizada].push([key, datos]);
+            }
         }
     });
     
-    // Ordenar grupos
-    Object.values(GRUPOS_HORARIO).forEach(grupo => {
-        grupo.sort((a, b) => {
-            const tipoA = ORDEN_JUEGOS.findIndex(t => a[0].toLowerCase().includes(t));
-            const tipoB = ORDEN_JUEGOS.findIndex(t => b[0].toLowerCase().includes(t));
+    // Ordenar dentro de cada grupo por tipo de juego
+    const ordenJuegos = ['juga3', 'pega3', 'premia2', 'diaria', 'super'];
+    
+    Object.keys(grupos).forEach(hora => {
+        grupos[hora].sort((a, b) => {
+            const keyA = a[0].toLowerCase();
+            const keyB = b[0].toLowerCase();
+            
+            const tipoA = ordenJuegos.findIndex(tipo => keyA.includes(tipo));
+            const tipoB = ordenJuegos.findIndex(tipo => keyB.includes(tipo));
+            
             return tipoA - tipoB;
         });
     });
     
-    return GRUPOS_HORARIO;
+    return grupos;
 }
 
 // ============================================
-// LAZY LOADING DE IMÁGENES
+// CREAR CARDS DE JUEGOS
 // ============================================
-let imageObserver = null;
-
-function initLazyLoading() {
-    if ('IntersectionObserver' in window) {
-        imageObserver = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    const img = entry.target;
-                    const src = img.dataset.src;
-                    if (src) {
-                        img.src = src;
-                        img.removeAttribute('data-src');
-                        imageObserver.unobserve(img);
-                    }
-                }
-            });
-        }, { rootMargin: '50px' });
-        
-        RECURSOS.addObserver(imageObserver);
-    }
-}
-
-// ============================================
-// CREAR CARDS (OPTIMIZADO)
-// ============================================
-
-// Template strings pre-compilados para mejor performance
-const TEMPLATES = {
-    pendiente: '<div class="pendiente">⏳ Pendiente</div>',
-    proximamente: '<div style="text-align:center"><span class="estado-badge">⏳ Próximamente</span></div>'
-};
 
 function crearCardJuego(key, datos) {
     const card = document.createElement('div');
     card.className = 'game-card';
     
-    const nombreBase = datos.nombre_juego.replace(/\s*(11:00 AM|3:00 PM|9:00 PM|10:00 AM|2:00 PM)/gi, '').trim();
+    // Limpiar nombre del juego
+    let nombreLimpio = datos.nombre_juego;
+    const nombreBase = nombreLimpio.replace(/\s*(11:00 AM|3:00 PM|9:00 PM|10:00 AM|2:00 PM)/gi, '').trim();
     
-    // Lazy loading para imágenes
-    const logo = datos.logo_url 
-        ? `<img data-src="${datos.logo_url}" alt="${nombreBase}" class="game-logo" onerror="this.style.display='none'">`
-        : '';
+    // Logo del juego
+    const logoHTML = datos.logo_url ? 
+        `<img src="${datos.logo_url}" alt="${nombreBase}" class="game-logo" onerror="this.style.display='none'">` : 
+        '';
     
-    let contenido = '';
+    let contenidoPrincipal = '';
     
+    // Detectar tipo de juego
     if (key.includes('juga3')) {
-        contenido = datos.numero_ganador ? `
+        // Jugá 3 - Solo bolas con título
+        contenidoPrincipal = datos.numero_ganador ? `
             <div class="juga3-numero">
                 <div class="numeros-titulo">NÚMEROS GANADORES</div>
                 <div class="numeros-individuales">
-                    ${datos.numeros_individuales.map(n => 
-                        `<div class="bola">${n}</div>`
+                    ${datos.numeros_individuales.map((num, index) => 
+                        `<div class="bola" style="animation-delay: ${index * 0.1}s">${num}</div>`
                     ).join('')}
                 </div>
             </div>
-        ` : TEMPLATES.pendiente;
-    } else if (datos.numeros_adicionales?.length > 0) {
-        const titulo = key.includes('diaria') ? 'NÚMERO · SIGNO · MULTIPLICADOR' : 'NÚMEROS GANADORES';
-        contenido = `
-            <div class="numeros-container">
-                <div class="numeros-titulo">${titulo}</div>
-                <div class="numeros-grid">
-                    ${datos.numeros_adicionales.map(n => 
-                        `<div class="bola ${isNaN(n)?'texto':''}">${n}</div>`
-                    ).join('')}
-                </div>
-            </div>
-        `;
+        ` : '<div class="pendiente">⏳ Pendiente</div>';
     } else {
-        contenido = TEMPLATES.pendiente;
+        // Otros juegos - Múltiples números en bolas
+        if (datos.numeros_adicionales && datos.numeros_adicionales.length > 0) {
+            let titulo = 'NÚMEROS GANADORES';
+            if (key.includes('diaria')) titulo = 'NÚMERO · SIGNO · MULTIPLICADOR';
+            
+            contenidoPrincipal = `
+                <div class="numeros-container">
+                    <div class="numeros-titulo">${titulo}</div>
+                    <div class="numeros-grid">
+                        ${datos.numeros_adicionales.map((num, index) => {
+                            const esTexto = isNaN(num);
+                            return `<div class="bola ${esTexto ? 'texto' : ''}" style="animation-delay: ${index * 0.1}s">${num}</div>`;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        } else {
+            contenidoPrincipal = '<div class="pendiente">⏳ Pendiente</div>';
+        }
     }
-    
+
+    // Formatear la fecha con año
     const fechaConAnio = formatearFechaSorteo(datos.fecha_sorteo);
-    const sinResultados = !datos.numero_ganador && (!datos.numeros_adicionales?.length);
-    
+
     card.innerHTML = `
         <div class="game-header">
             <div class="game-title-row">
                 <div class="game-name">${nombreBase}</div>
-                ${logo}
+                ${logoHTML}
             </div>
             <div class="game-meta">
                 <div class="game-date">📅 ${fechaConAnio}</div>
                 ${datos.hora_sorteo ? `<div class="game-time">🕐 ${datos.hora_sorteo}</div>` : ''}
             </div>
         </div>
-        ${contenido}
-        ${sinResultados ? TEMPLATES.proximamente : ''}
+        
+        ${contenidoPrincipal}
+        
+        ${!datos.numero_ganador && (!datos.numeros_adicionales || datos.numeros_adicionales.length === 0) ? `
+            <div style="text-align:center;">
+                <span class="estado-badge">⏳ Próximamente</span>
+            </div>
+        ` : ''}
     `;
-    
-    // Observar imágenes para lazy loading
-    if (imageObserver && logo) {
-        const img = card.querySelector('img[data-src]');
-        if (img) imageObserver.observe(img);
-    }
     
     return card;
 }
 
 // ============================================
-// ORDENAR SORTEOS (Optimizado)
+// ORDENAR SORTEOS
 // ============================================
-const ORDEN_HORAS = {
-    '11:00 AM': 1, '10:00 AM': 1,
-    '3:00 PM': 2, '2:00 PM': 2, '15:00': 2,
-    '9:00 PM': 3, '21:00': 3
-};
 
 function ordenarPorFechaYHora(sorteos) {
+    const ordenHoras = {
+        '11:00 AM': 1, '10:00 AM': 1,
+        '3:00 PM': 2, '2:00 PM': 2, '15:00': 2,
+        '9:00 PM': 3, '21:00': 3
+    };
+
     return Object.entries(sorteos).sort((a, b) => {
         const [keyA, datosA] = a;
         const [keyB, datosB] = b;
         
-        const [diaA, mesA, yearA = new Date().getFullYear()] = datosA.fecha_sorteo.split('-').map(Number);
-        const [diaB, mesB, yearB = new Date().getFullYear()] = datosB.fecha_sorteo.split('-').map(Number);
+        // Comparar fechas (formato DD-MM o DD-MM-YYYY)
+        const partesA = datosA.fecha_sorteo.split('-').map(Number);
+        const partesB = datosB.fecha_sorteo.split('-').map(Number);
         
+        const diaA = partesA[0];
+        const mesA = partesA[1];
+        const yearA = partesA[2] || new Date().getFullYear();
+        
+        const diaB = partesB[0];
+        const mesB = partesB[1];
+        const yearB = partesB[2] || new Date().getFullYear();
+        
+        // Ordenar por año, mes y día (más reciente primero)
         if (yearA !== yearB) return yearB - yearA;
         if (mesA !== mesB) return mesB - mesA;
         if (diaA !== diaB) return diaB - diaA;
         
-        const horaA = ORDEN_HORAS[datosA.hora_sorteo] || 0;
-        const horaB = ORDEN_HORAS[datosB.hora_sorteo] || 0;
+        // Misma fecha, ordenar por hora
+        const horaA = ordenHoras[datosA.hora_sorteo] || 0;
+        const horaB = ordenHoras[datosB.hora_sorteo] || 0;
+        
         if (horaA !== horaB) return horaA - horaB;
         
-        const tipoA = ORDEN_JUEGOS.findIndex(t => keyA.includes(t));
-        const tipoB = ORDEN_JUEGOS.findIndex(t => keyB.includes(t));
+        // Mismo horario, ordenar por tipo de juego
+        const ordenJuegos = ['juga3', 'pega3', 'premia2', 'diaria', 'super'];
+        const tipoA = ordenJuegos.findIndex(tipo => keyA.includes(tipo));
+        const tipoB = ordenJuegos.findIndex(tipo => keyB.includes(tipo));
+        
         return tipoA - tipoB;
     });
 }
 
 // ============================================
-// CARGAR RESULTADOS (Optimizado con AbortController)
+// CARGAR RESULTADOS (MODIFICADO CON SECCIONES)
 // ============================================
-let abortController = null;
 
 async function cargarResultados() {
     try {
-        // Cancelar petición anterior si existe
-        if (abortController) abortController.abort();
-        abortController = new AbortController();
-        
         let data;
         
-        if (CONFIG.DATOS_EMBEBIDOS) {
-            data = CONFIG.DATOS_EMBEBIDOS;
+        if (DATOS_EMBEBIDOS) {
+            data = DATOS_EMBEBIDOS;
         } else {
-            const res = await fetch(`${CONFIG.JSON_URL}?t=${Date.now()}`, {
+            // AGREGAR TIMESTAMP PARA EVITAR CACHÉ
+            const urlSinCache = `${JSON_URL}?t=${Date.now()}`;
+            
+            const response = await fetch(urlSinCache, {
                 cache: 'no-store',
-                headers: { 'Cache-Control': 'no-cache' },
-                signal: abortController.signal
+                headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache'
+                }
             });
             
-            if (!res.ok) throw new Error('Error al cargar resultados');
-            data = await res.json();
+            if (!response.ok) {
+                throw new Error('No se pudieron cargar los resultados. Por favor, intenta de nuevo más tarde.');
+            }
+            
+            data = await response.json();
         }
         
-        // Actualizar UI (batch)
-        requestAnimationFrame(() => {
-            if (DOM.fecha) DOM.fecha.textContent = formatearFecha();
-            if (DOM.actualizacion && data.fecha_actualizacion) {
-                DOM.actualizacion.textContent = data.fecha_actualizacion;
+        // Actualizar fecha en el DOM
+        const fechaElement = document.getElementById('fechaActual');
+        if (fechaElement) {
+            fechaElement.textContent = formatearFecha();
+        }
+        
+        // Actualizar última actualización
+        if (data.fecha_actualizacion) {
+            const actualizacionElement = document.getElementById('ultimaActualizacion');
+            if (actualizacionElement) {
+                actualizacionElement.textContent = data.fecha_actualizacion;
             }
-        });
+        }
         
-        if (!DOM.contenido) return;
-        
-        const sorteos = data.sorteos || data;
-        const tipoJuego = obtenerTipoJuego();
-        const sorteosFiltrados = filtrarSorteos(sorteos, tipoJuego);
-        
-        if (Object.keys(sorteosFiltrados).length === 0) {
-            DOM.contenido.innerHTML = '<div class="error-message">ℹ️ No hay resultados disponibles para este juego todavía.</div>';
+        const contenido = document.getElementById('contenido');
+        if (!contenido) {
+            console.error('Elemento #contenido no encontrado');
             return;
         }
         
+        const sorteos = data.sorteos || data;
+        
+        // **FILTRAR según el tipo de página**
+        const tipoJuego = obtenerTipoJuego();
+        const sorteosFiltrados = filtrarSorteos(sorteos, tipoJuego);
+        
+        // Verificar si hay resultados después del filtrado
+        if (Object.keys(sorteosFiltrados).length === 0) {
+            contenido.innerHTML = `
+                <div class="error-message">
+                    ℹ️ No hay resultados disponibles para este juego todavía.
+                </div>
+            `;
+            return;
+        }
+        
+        // Ordenar sorteos filtrados
         const sorteosOrdenados = ordenarPorFechaYHora(sorteosFiltrados);
-        const grupos = agruparPorHorario(sorteosOrdenados);
         
-        // Renderizar con fragment (mejor rendimiento)
-        const fragment = document.createDocumentFragment();
+        // **AGRUPAR POR HORARIO**
+        const gruposPorHorario = agruparPorHorario(sorteosOrdenados);
         
-        const HORARIOS = ['11:00 AM', '3:00 PM', '9:00 PM', 'super'];
-        const EMOJIS = { '11:00 AM': '🌅', '3:00 PM': '☀️', '9:00 PM': '🌙', 'super': '🎰' };
-        const NOMBRES = { 
+        // Limpiar contenido
+        contenido.innerHTML = '';
+        
+        // **CREAR SECCIONES POR HORARIO**
+        const horarios = ['11:00 AM', '3:00 PM', '9:00 PM', 'super'];
+        const emojisHorario = {
+            '11:00 AM': '🌅',
+            '3:00 PM': '☀️',
+            '9:00 PM': '🌙',
+            'super': '🎰'
+        };
+        const nombresHorario = {
             '11:00 AM': 'SORTEO DE LA MAÑANA',
             '3:00 PM': 'SORTEO DE LA TARDE',
             '9:00 PM': 'SORTEO DE LA NOCHE',
             'super': 'SÚPER PREMIO'
         };
         
-        HORARIOS.forEach(h => {
-            const sorteosDeLaHora = grupos[h];
-            if (!sorteosDeLaHora?.length) return;
+        horarios.forEach(horario => {
+            const sorteosDeLaHora = gruposPorHorario[horario];
             
-            const section = document.createElement('div');
-            section.className = 'sorteo-section';
-            
-            const header = document.createElement('h2');
-            header.className = 'sorteo-header';
-            header.textContent = h === 'super' 
-                ? `${EMOJIS[h]} ${NOMBRES[h]}` 
-                : `${EMOJIS[h]} ${NOMBRES[h]} - ${h}`;
-            
-            const grid = document.createElement('div');
-            grid.className = 'sorteo-grid';
-            
-            sorteosDeLaHora.forEach(([key, datos]) => {
-                grid.appendChild(crearCardJuego(key, datos));
-            });
-            
-            section.appendChild(header);
-            section.appendChild(grid);
-            fragment.appendChild(section);
-        });
-        
-        // Actualizar DOM en una sola operación
-        requestAnimationFrame(() => {
-            DOM.contenido.innerHTML = '';
-            DOM.contenido.appendChild(fragment);
+            // Solo mostrar sección si hay sorteos
+            if (sorteosDeLaHora && sorteosDeLaHora.length > 0) {
+                // Crear sección
+                const section = document.createElement('div');
+                section.className = 'sorteo-section';
+                
+                // Crear header (sin mostrar hora para Súper Premio)
+                const header = document.createElement('h2');
+                header.className = 'sorteo-header';
+                if (horario === 'super') {
+                    header.textContent = `${emojisHorario[horario]} ${nombresHorario[horario]}`;
+                } else {
+                    header.textContent = `${emojisHorario[horario]} ${nombresHorario[horario]} - ${horario}`;
+                }
+                
+                // Crear grid para esta sección
+                const grid = document.createElement('div');
+                grid.className = 'sorteo-grid';
+                
+                // Agregar cards al grid
+                sorteosDeLaHora.forEach(([key, datos]) => {
+                    grid.appendChild(crearCardJuego(key, datos));
+                });
+                
+                // Ensamblar sección
+                section.appendChild(header);
+                section.appendChild(grid);
+                
+                // Agregar al contenido principal
+                contenido.appendChild(section);
+            }
         });
         
     } catch (error) {
-        if (error.name === 'AbortError') return; // Ignorar cancelaciones
-        
         console.error('Error:', error);
-        if (DOM.contenido) {
-            DOM.contenido.innerHTML = `<div class="error-message">⚠️ Error al cargar los resultados<br><small>${error.message}</small></div>`;
+        const contenido = document.getElementById('contenido');
+        if (contenido) {
+            contenido.innerHTML = `
+                <div class="error-message">
+                    ⚠️ Error al cargar los resultados<br>
+                    <small>${error.message}</small>
+                </div>
+            `;
         }
     } finally {
-        if (DOM.loading) {
-            requestAnimationFrame(() => {
-                DOM.loading.style.display = 'none';
-            });
+        const loading = document.getElementById('loading');
+        if (loading) {
+            loading.style.display = 'none';
         }
     }
 }
 
-// ============================================
-// SISTEMA DE ACTUALIZACIÓN (Optimizado con gestión)
-// ============================================
-let updateTimerId = null;
+// Cargar resultados al iniciar
+cargarResultados();
+
+// Actualizar según horarios de sorteo
+// Durante sorteos (11:00-11:30, 15:00-15:30, 21:00-21:30): cada 1 minuto
+// Resto del día: cada 5 minutos
 
 function obtenerIntervaloActualizacion() {
     const ahora = new Date();
+    const offsetHonduras = -6;
     const utc = ahora.getTime() + (ahora.getTimezoneOffset() * 60000);
-    const horaHN = new Date(utc - 21600000);
+    const horaHonduras = new Date(utc + (3600000 * offsetHonduras));
     
-    const h = horaHN.getHours();
-    const m = horaHN.getMinutes();
+    const hour = horaHonduras.getHours();
+    const minute = horaHonduras.getMinutes();
     
-    if ((h === 11 || h === 15 || h === 21) && m <= 30) {
-        return CONFIG.INTERVALO_SORTEO;
+    // Durante ventanas de sorteo: actualizar cada 1 minuto
+    if (
+        (hour === 11 && minute >= 0 && minute <= 30) ||
+        (hour === 15 && minute >= 0 && minute <= 30) ||
+        (hour === 21 && minute >= 0 && minute <= 30)
+    ) {
+        return 1 * 60 * 1000; // 1 minuto
     }
     
-    return CONFIG.INTERVALO_NORMAL;
+    // Resto del día: cada 5 minutos
+    return 5 * 60 * 1000;
 }
 
-function programarActualizacion() {
-    if (updateTimerId) clearTimeout(updateTimerId);
-    
-    updateTimerId = setTimeout(() => {
+// Función para recargar con intervalo dinámico
+function programarSiguienteActualizacion() {
+    const intervalo = obtenerIntervaloActualizacion();
+    setTimeout(() => {
         cargarResultados();
-        programarActualizacion();
-    }, obtenerIntervaloActualizacion());
-    
-    RECURSOS.addTimer(updateTimerId);
+        programarSiguienteActualizacion(); // Reprogramar
+    }, intervalo);
 }
 
-function detenerActualizacion() {
-    if (updateTimerId) {
-        clearTimeout(updateTimerId);
-        updateTimerId = null;
-    }
-}
+// Iniciar ciclo de actualizaciones
+programarSiguienteActualizacion();
+
 
 // ============================================
-// RULETA DE NÚMEROS (OPTIMIZADO CON RAF)
+// RULETA DE NÚMEROS DE LA SUERTE
 // ============================================
-let ruletaActiva = false;
-let tooltipTimer = null;
 
-// Pool de confetti para reutilización
-const confettiPool = [];
-const MAX_CONFETTI = 50;
-
-function initConfettiPool() {
-    for (let i = 0; i < MAX_CONFETTI; i++) {
-        const c = document.createElement('div');
-        c.className = 'confetti';
-        c.style.display = 'none';
-        confettiPool.push(c);
-    }
-}
-
-function ocultarTooltip() {
+// Ocultar tooltip después de 10 segundos
+setTimeout(() => {
     const tooltip = document.getElementById('ruletaTooltip');
     if (tooltip) tooltip.classList.add('hidden');
-}
+}, 10000);
 
 function mostrarRuleta() {
     const overlay = document.getElementById('ruletaOverlay');
@@ -541,66 +514,68 @@ function mostrarRuleta() {
     if (overlay) overlay.classList.add('active');
     if (tooltip) tooltip.classList.add('hidden');
     
-    if (display && !ruletaActiva) {
-        display.innerHTML = '<div class="spinning-number">000</div><p style="color:#999;margin-top:20px">Haz clic en "Girar" para descubrir tus números</p>';
+    // Reset display
+    if (display) {
+        display.innerHTML = `
+            <div class="spinning-number">000</div>
+            <p style="color: #999; margin-top: 20px;">Haz clic en "Girar" para descubrir tus números</p>
+        `;
     }
 }
 
-function cerrarRuleta(e) {
-    if (e && e.target !== e.currentTarget) return;
+function cerrarRuleta(event) {
+    if (event && event.target !== event.currentTarget) return;
     const overlay = document.getElementById('ruletaOverlay');
     if (overlay) overlay.classList.remove('active');
-    ruletaActiva = false;
 }
 
-// Animación de giro con RAF (más suave)
 function girarRuleta() {
-    if (ruletaActiva) return;
-    ruletaActiva = true;
-    
     const display = document.getElementById('ruletaDisplay');
-    const btn = event.target;
+    const button = event.target;
     
-    if (!display || !btn) return;
+    if (!display || !button) return;
     
-    btn.disabled = true;
-    btn.classList.add('spinning');
-    btn.textContent = '🎲 Girando...';
+    // Deshabilitar botón mientras gira
+    button.disabled = true;
+    button.classList.add('spinning');
+    button.textContent = '🎲 Girando...';
     
+    // Mostrar números girando
     display.innerHTML = '<div class="spinning-number" id="spinningNum">000</div>';
     
-    const startTime = performance.now();
-    const duration = 3000;
-    let rafId;
-    
-    function animate(currentTime) {
-        const elapsed = currentTime - startTime;
-        
-        if (elapsed < duration) {
-            const num = document.getElementById('spinningNum');
-            if (num) {
-                num.textContent = String(Math.floor(Math.random() * 1000)).padStart(3, '0');
-            }
-            rafId = requestAnimationFrame(animate);
-        } else {
-            // Finalizar animación
-            mostrarNumerosSuerte();
-            crearConfetti();
-            
-            btn.disabled = false;
-            btn.classList.remove('spinning');
-            btn.textContent = '🎲 Girar Otra Vez';
-            ruletaActiva = false;
+    let counter = 0;
+    const spinInterval = setInterval(() => {
+        const spinningNum = document.getElementById('spinningNum');
+        if (spinningNum) {
+            spinningNum.textContent = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
         }
-    }
+        counter++;
+    }, 50);
     
-    rafId = requestAnimationFrame(animate);
+    // Después de 3 segundos, mostrar los números finales
+    setTimeout(() => {
+        clearInterval(spinInterval);
+        mostrarNumerosSuerte();
+        
+        // Reactivar botón
+        button.disabled = false;
+        button.classList.remove('spinning');
+        button.textContent = '🎲 Girar Otra Vez';
+        
+        // Crear confetti
+        crearConfetti();
+    }, 3000);
 }
 
 function mostrarNumerosSuerte() {
-    const numeros = new Set();
-    while(numeros.size < 4) {
-        numeros.add(Math.floor(Math.random() * 100));
+    const numeros = [];
+    
+    // Generar 4 números únicos entre 00 y 99
+    while(numeros.length < 4) {
+        const num = Math.floor(Math.random() * 100);
+        if (!numeros.includes(num)) {
+            numeros.push(num);
+        }
     }
     
     const mensajes = [
@@ -612,99 +587,39 @@ function mostrarNumerosSuerte() {
         "¡Tu día de suerte ha llegado!"
     ];
     
+    const mensajeAleatorio = mensajes[Math.floor(Math.random() * mensajes.length)];
+    
     const display = document.getElementById('ruletaDisplay');
     if (display) {
         display.innerHTML = `
             <div class="numeros-suerte-display">
-                ${[...numeros].map(n => `<div class="numero-suerte">${String(n).padStart(2,'0')}</div>`).join('')}
+                ${numeros.map(num => `
+                    <div class="numero-suerte">${num.toString().padStart(2, '0')}</div>
+                `).join('')}
             </div>
-            <div class="mensaje-suerte">✨ ${mensajes[Math.floor(Math.random() * mensajes.length)]} ✨</div>
+            <div class="mensaje-suerte">✨ ${mensajeAleatorio} ✨</div>
         `;
     }
 }
 
 function crearConfetti() {
-    const colors = ['#667eea','#764ba2','#f093fb','#f5576c','#ffd700','#00ff88'];
+    const colors = ['#667eea', '#764ba2', '#f093fb', '#f5576c', '#ffd700', '#00ff88'];
     const overlay = document.getElementById('ruletaOverlay');
+    
     if (!overlay) return;
     
-    // Reutilizar elementos del pool
-    for (let i = 0; i < Math.min(50, confettiPool.length); i++) {
+    for (let i = 0; i < 50; i++) {
         setTimeout(() => {
-            const c = confettiPool[i];
-            if (!c) return;
+            const confetti = document.createElement('div');
+            confetti.className = 'confetti';
+            confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+            confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+            confetti.style.width = confetti.style.height = (Math.random() * 10 + 5) + 'px';
             
-            c.style.cssText = `
-                display:block;
-                left:${Math.random()*100}%;
-                background:${colors[Math.floor(Math.random()*colors.length)]};
-                animation-duration:${Math.random()*2+2}s;
-                width:${Math.random()*10+5}px;
-                height:${Math.random()*10+5}px
-            `;
+            overlay.appendChild(confetti);
             
-            if (!c.parentElement) overlay.appendChild(c);
-            
-            setTimeout(() => {
-                c.style.display = 'none';
-            }, 3000);
+            setTimeout(() => confetti.remove(), 3000);
         }, i * 30);
     }
 }
-
-// ============================================
-// GESTIÓN DE VISIBILIDAD (Page Visibility API)
-// ============================================
-function handleVisibilityChange() {
-    if (document.hidden) {
-        // Página oculta: pausar updates pesados
-        detenerReloj();
-        detenerActualizacion();
-    } else {
-        // Página visible: reanudar
-        iniciarReloj();
-        cargarResultados();
-        programarActualizacion();
-    }
-}
-
-// ============================================
-// INICIALIZACIÓN Y CLEANUP
-// ============================================
-function init() {
-    initDOM();
-    initLazyLoading();
-    initConfettiPool();
-    iniciarReloj();
-    cargarResultados();
-    programarActualizacion();
-    
-    // Monitorear visibilidad
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    // Ocultar tooltip después de 10 segundos
-    tooltipTimer = setTimeout(ocultarTooltip, 10000);
-    RECURSOS.addTimer(tooltipTimer);
-}
-
-function cleanup() {
-    detenerReloj();
-    detenerActualizacion();
-    RECURSOS.cleanup();
-    document.removeEventListener('visibilitychange', handleVisibilityChange);
-}
-
-// Iniciar cuando el DOM esté listo
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-} else {
-    init();
-}
-
-// Cleanup al cerrar/cambiar página
-window.addEventListener('beforeunload', cleanup);
-
-// Exponer funciones globales necesarias
-window.mostrarRuleta = mostrarRuleta;
-window.cerrarRuleta = cerrarRuleta;
-window.girarRuleta = girarRuleta;

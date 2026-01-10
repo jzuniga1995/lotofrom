@@ -1,21 +1,5 @@
 /* ============================================ */
-/* CSS ULTRA OPTIMIZADO PARA GOOGLE PAGESPEED */
-/* Sin animaciones, sin transiciones, sin efectos */
-/* ============================================ */
-
-:root {
-    --primary: #667eea;
-    --secondary: #764ba2;
-    --pink: #f5576c;
-    --bg-dark: #2a5298;
-    --text-dark: #2c3e50;
-    --text-gray: #666;
-    --border: #e0e0e0;
-    --white: #fff;
-}
-
-/* ============================================ */
-/* RESET Y GLOBALES                            */
+/* ESTILOS GLOBALES - LotoHN                  */
 /* ============================================ */
 
 * {
@@ -26,18 +10,22 @@
 
 html {
     overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
 }
 
 body {
-    font-family: system-ui, -apple-system, sans-serif;
-    background: linear-gradient(180deg, #1e3c72 0%, #2a5298 100%);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
     min-height: 100vh;
     padding: 20px;
-    color: #333;
+    overflow-x: hidden;
+    width: 100%;
+    max-width: 100vw;
 }
 
 /* ============================================ */
-/* LAYOUT                                      */
+/* LAYOUT PRINCIPAL                            */
 /* ============================================ */
 
 .main-layout {
@@ -45,11 +33,32 @@ body {
     gap: 20px;
     max-width: 1600px;
     margin: 0 auto;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.ad-space {
+    width: 160px;
+    min-width: 160px;
+    min-height: 600px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.9em;
+    position: sticky;
+    top: 20px;
+    flex-shrink: 0;
 }
 
 .container {
     flex: 1;
     max-width: 1200px;
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
 }
 
 /* ============================================ */
@@ -58,20 +67,31 @@ body {
 
 header {
     text-align: center;
-    color: var(--white);
+    color: white;
     margin-bottom: 40px;
+    animation: fadeInDown 0.8s ease;
+    width: 100%;
 }
 
 header h1 {
-    font-size: clamp(1.8em, 5vw, 3em);
+    font-size: 3em;
     margin-bottom: 10px;
+    text-shadow: 3px 3px 6px rgba(0,0,0,0.4);
     font-weight: 700;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .fecha-actual {
     font-size: 1.3em;
     opacity: 0.95;
+    font-weight: 300;
+    margin-bottom: 10px;
 }
+
+/* ============================================ */
+/* RELOJ HONDURAS                              */
+/* ============================================ */
 
 .reloj-container {
     display: flex;
@@ -87,17 +107,19 @@ header h1 {
     border-radius: 15px;
     font-size: 1.4em;
     font-weight: 600;
-    font-family: monospace;
+    font-family: 'Courier New', monospace;
     letter-spacing: 2px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
 }
 
 /* ============================================ */
-/* RULETA - MEJORADA PARA NO TAPAR NAVEGACIÓN */
+/* RULETA DE NÚMEROS DE LA SUERTE              */
 /* ============================================ */
 
 .ruleta-container {
     position: fixed;
-    bottom: 20px;
+    top: 20px;
     right: 20px;
     z-index: 1000;
 }
@@ -105,45 +127,67 @@ header h1 {
 .ruleta-button {
     background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
     border: none;
-    color: var(--white);
+    color: white;
     padding: 15px 30px;
     border-radius: 50px;
     font-size: 1.1em;
     font-weight: 700;
     cursor: pointer;
+    box-shadow: 0 8px 25px rgba(245, 87, 108, 0.6);
+    transition: all 0.3s ease;
     display: flex;
     align-items: center;
     gap: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    position: relative;
 }
 
 .ruleta-button:hover {
-    opacity: 0.9;
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 12px 35px rgba(245, 87, 108, 0.8);
+}
+
+.ruleta-button:active {
+    transform: translateY(0) scale(0.98);
+}
+
+.ruleta-button.spinning {
+    animation: pulse 0.5s infinite;
 }
 
 .tooltip {
     position: absolute;
-    bottom: 70px;
+    bottom: -80px;
     right: 0;
-    background: var(--white);
+    background: white;
     color: #333;
     padding: 15px 20px;
     border-radius: 15px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    white-space: nowrap;
     font-size: 0.9em;
     font-weight: 600;
+    animation: tooltipBounce 2s ease-in-out infinite;
     pointer-events: none;
-    white-space: nowrap;
 }
 
-.tooltip::after {
+.tooltip::before {
     content: '';
     position: absolute;
-    bottom: -10px;
+    top: -10px;
     right: 30px;
+    width: 0;
+    height: 0;
     border-left: 10px solid transparent;
     border-right: 10px solid transparent;
-    border-top: 10px solid var(--white);
+    border-bottom: 10px solid white;
+}
+
+.tooltip-arrow {
+    position: absolute;
+    top: -35px;
+    right: 35px;
+    font-size: 2em;
+    animation: arrowBounce 1s ease-in-out infinite;
 }
 
 .tooltip.hidden {
@@ -154,12 +198,14 @@ header h1 {
     position: absolute;
     top: -8px;
     right: -8px;
-    background: #f44;
-    color: var(--white);
+    background: #ff4444;
+    color: white;
     padding: 4px 10px;
     border-radius: 12px;
     font-size: 0.7em;
     font-weight: 900;
+    animation: badgePulse 1.5s ease-in-out infinite;
+    box-shadow: 0 4px 15px rgba(255, 68, 68, 0.6);
 }
 
 /* ============================================ */
@@ -177,6 +223,7 @@ header h1 {
     justify-content: center;
     align-items: center;
     z-index: 9999;
+    animation: fadeIn 0.3s ease;
 }
 
 .ruleta-overlay.active {
@@ -184,13 +231,14 @@ header h1 {
 }
 
 .ruleta-content {
-    background: var(--white);
+    background: white;
     padding: 50px;
     border-radius: 30px;
     text-align: center;
     max-width: 600px;
     width: 90%;
     position: relative;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
 .ruleta-close {
@@ -202,12 +250,21 @@ header h1 {
     font-size: 2em;
     cursor: pointer;
     color: #999;
+    transition: color 0.3s ease;
+}
+
+.ruleta-close:hover {
+    color: #333;
 }
 
 .ruleta-title {
     font-size: 2.5em;
     margin-bottom: 30px;
-    color: var(--primary);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    word-wrap: break-word;
 }
 
 .numeros-suerte-display {
@@ -222,27 +279,46 @@ header h1 {
     width: 100px;
     height: 100px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: var(--white);
+    color: white;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 3em;
     font-weight: 900;
-    aspect-ratio: 1/1;
+    box-shadow: 0 15px 40px rgba(102, 126, 234, 0.6);
+    animation: popIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
+
+.numero-suerte:nth-child(1) { animation-delay: 0.1s; }
+.numero-suerte:nth-child(2) { animation-delay: 0.2s; }
+.numero-suerte:nth-child(3) { animation-delay: 0.3s; }
+.numero-suerte:nth-child(4) { animation-delay: 0.4s; }
 
 .spinning-number {
     font-size: 4em;
     font-weight: 900;
-    color: var(--pink);
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: numberSpin 0.1s linear infinite;
 }
 
 .mensaje-suerte {
     font-size: 1.3em;
-    color: var(--text-gray);
+    color: #666;
     margin-top: 20px;
     font-style: italic;
+}
+
+.confetti {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    background: #f093fb;
+    animation: confettiFall 3s linear;
+    pointer-events: none;
 }
 
 /* ============================================ */
@@ -251,23 +327,19 @@ header h1 {
 
 .loading {
     text-align: center;
-    color: var(--white);
+    color: white;
     font-size: 1.5em;
     padding: 50px;
 }
 
 .spinner {
-    border: 5px solid rgba(255, 255, 255, 0.3);
-    border-top: 5px solid var(--white);
+    border: 5px solid rgba(255,255,255,0.3);
+    border-top: 5px solid white;
     border-radius: 50%;
     width: 60px;
     height: 60px;
-    margin: 20px auto;
     animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    to { transform: rotate(360deg); }
+    margin: 20px auto;
 }
 
 /* ============================================ */
@@ -278,16 +350,35 @@ header h1 {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 25px;
+    animation: fadeIn 1s ease;
+    width: 100%;
 }
 
 .game-card {
-    background: var(--white);
+    background: white;
     border-radius: 20px;
     padding: 25px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+    transition: all 0.4s ease;
+    animation: slideUp 0.6s ease;
     position: relative;
-    min-height: 300px;
-    border-top: 5px solid var(--primary);
+    overflow: hidden;
+    width: 100%;
+}
+
+.game-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+
+.game-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.4);
 }
 
 /* ============================================ */
@@ -297,7 +388,7 @@ header h1 {
 .game-header {
     margin-bottom: 20px;
     padding-bottom: 15px;
-    border-bottom: 3px solid var(--border);
+    border-bottom: 3px solid #f0f0f0;
 }
 
 .game-title-row {
@@ -311,8 +402,10 @@ header h1 {
 .game-name {
     font-size: 1.6em;
     font-weight: 700;
-    color: var(--text-dark);
+    color: #2c3e50;
     flex: 1;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .game-logo {
@@ -320,10 +413,15 @@ header h1 {
     height: 90px;
     object-fit: contain;
     border-radius: 15px;
-    background: #f5f5f5;
+    background: rgba(255,255,255,0.95);
     padding: 10px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    transition: transform 0.3s ease;
     flex-shrink: 0;
-    aspect-ratio: 1/1;
+}
+
+.game-logo:hover {
+    transform: scale(1.15) rotate(8deg);
 }
 
 .game-meta {
@@ -335,16 +433,17 @@ header h1 {
 }
 
 .game-time {
-    background: var(--primary);
-    color: var(--white);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
     padding: 8px 20px;
     border-radius: 25px;
     font-size: 1em;
     font-weight: 700;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
 }
 
 .game-date {
-    color: var(--text-gray);
+    color: #666;
     font-size: 1em;
     font-weight: 600;
 }
@@ -370,20 +469,29 @@ header h1 {
     width: 80px;
     height: 80px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: var(--white);
+    color: white;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 2.5em;
     font-weight: 900;
-    aspect-ratio: 1/1;
+    box-shadow: 0 10px 25px rgba(102, 126, 234, 0.5);
+    animation: bounce 0.6s ease;
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+}
+
+.bola:hover {
+    transform: scale(1.15);
 }
 
 .bola.texto {
     font-size: 1.2em;
     background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    box-shadow: 0 10px 25px rgba(245, 87, 108, 0.5);
     padding: 10px;
+    word-wrap: break-word;
 }
 
 .numeros-container {
@@ -420,8 +528,9 @@ header h1 {
     margin-top: 15px;
     text-transform: uppercase;
     letter-spacing: 1px;
-    background: var(--pink);
-    color: var(--white);
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    box-shadow: 0 4px 15px rgba(245, 87, 108, 0.4);
 }
 
 .pendiente {
@@ -438,16 +547,18 @@ header h1 {
 
 footer {
     text-align: center;
-    color: var(--white);
+    color: white;
     margin-top: 60px;
-    padding: 30px 20px 100px;
+    padding: 30px 20px;
     opacity: 0.95;
     border-top: 2px solid rgba(255, 255, 255, 0.2);
+    width: 100%;
 }
 
 footer p {
     margin: 8px 0;
     font-size: 1em;
+    word-wrap: break-word;
 }
 
 .footer-links {
@@ -459,12 +570,18 @@ footer p {
 }
 
 .footer-links a {
-    color: var(--white);
+    color: white;
     text-decoration: none;
     font-size: 1em;
+    transition: all 0.3s ease;
     padding: 8px 15px;
     border-radius: 8px;
     background: rgba(255, 255, 255, 0.1);
+}
+
+.footer-links a:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
 }
 
 .footer-copyright {
@@ -474,65 +591,80 @@ footer p {
 }
 
 /* ============================================ */
-/* ERROR                                       */
+/* ERROR MESSAGE                               */
 /* ============================================ */
 
 .error-message {
-    background: var(--white);
+    background: white;
     padding: 40px;
     border-radius: 25px;
     text-align: center;
     color: #e74c3c;
     font-size: 1.3em;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.3);
 }
 
 /* ============================================ */
-/* SEO CONTENT                                 */
+/* ESTILOS SEO CONTENT                         */
 /* ============================================ */
 
 .seo-content {
     max-width: 1200px;
     margin: 40px auto;
     padding: 30px;
-    background: var(--white);
+    background: white;
     border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     line-height: 1.8;
+    width: 100%;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
 }
 
 .seo-content h2 {
-    color: var(--primary);
+    color: #667eea;
     margin: 30px 0 15px;
     font-size: 1.8em;
-    border-bottom: 3px solid var(--secondary);
+    border-bottom: 3px solid #764ba2;
     padding-bottom: 10px;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
 }
 
 .seo-content h3 {
     color: #333;
     margin: 25px 0 12px;
     font-size: 1.4em;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
 }
 
 .seo-content p {
     margin: 15px 0;
     color: #444;
+    text-align: justify;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
 }
 
-.seo-content ul, .seo-content ol {
+.seo-content ul, 
+.seo-content ol {
     margin: 15px 0 15px 30px;
     color: #444;
 }
 
 .seo-content li {
     margin: 8px 0;
+    word-wrap: break-word;
 }
 
 .highlight-box {
-    background: var(--primary);
-    color: var(--white);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
     padding: 25px;
     border-radius: 10px;
     margin: 25px 0;
+    box-shadow: 0 4px 12px rgba(102,126,234,0.3);
 }
 
 .tips-grid {
@@ -546,24 +678,36 @@ footer p {
     background: #f8f9ff;
     padding: 20px;
     border-radius: 10px;
-    border-left: 4px solid var(--primary);
+    border-left: 4px solid #667eea;
 }
 
 .tip-card h4 {
-    color: var(--primary);
-    margin: 0 0 10px;
+    color: #667eea;
+    margin: 0 0 10px 0;
 }
 
 .stats-table {
     width: 100%;
     border-collapse: collapse;
     margin: 20px 0;
-    background: var(--white);
+    background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.stats-table thead,
+.stats-table tbody,
+.stats-table tr {
+    display: table;
+    width: 100%;
+    table-layout: fixed;
 }
 
 .stats-table th {
-    background: var(--primary);
-    color: var(--white);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
     padding: 15px;
     text-align: left;
 }
@@ -571,6 +715,8 @@ footer p {
 .stats-table td {
     padding: 12px 15px;
     border-bottom: 1px solid #eee;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .stats-table tr:hover {
@@ -578,22 +724,766 @@ footer p {
 }
 
 /* ============================================ */
-/* SORTEOS                                     */
+/* ANIMACIONES                                 */
+/* ============================================ */
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+@keyframes tooltipBounce {
+    0%, 100% { 
+        transform: translateY(0);
+        opacity: 1;
+    }
+    50% { 
+        transform: translateY(-5px);
+        opacity: 0.9;
+    }
+}
+
+@keyframes arrowBounce {
+    0%, 100% { 
+        transform: translateY(0);
+    }
+    50% { 
+        transform: translateY(-10px);
+    }
+}
+
+@keyframes badgePulse {
+    0%, 100% { 
+        transform: scale(1);
+    }
+    50% { 
+        transform: scale(1.15);
+    }
+}
+
+@keyframes popIn {
+    0% {
+        transform: scale(0) rotate(0deg);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.2) rotate(180deg);
+    }
+    100% {
+        transform: scale(1) rotate(360deg);
+        opacity: 1;
+    }
+}
+
+@keyframes numberSpin {
+    0% { transform: rotateX(0deg); }
+    100% { transform: rotateX(360deg); }
+}
+
+@keyframes confettiFall {
+    0% {
+        transform: translateY(-100vh) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+    }
+}
+
+/* ============================================ */
+/* RESPONSIVE                                  */
+/* ============================================ */
+
+/* Extra Large Screens - Desktop Large */
+@media (max-width: 1600px) {
+    .ad-space {
+        width: 140px;
+        min-width: 140px;
+        min-height: 500px;
+    }
+}
+
+/* Large Screens - Desktop */
+@media (max-width: 1400px) {
+    .ad-space {
+        display: none;
+    }
+    
+    .main-layout {
+        padding: 0;
+    }
+    
+    .container {
+        max-width: 100%;
+    }
+}
+
+/* Medium-Large Screens - Tablet Landscape */
+@media (max-width: 1024px) {
+    body {
+        padding: 15px;
+    }
+    
+    header h1 {
+        font-size: 2.5em;
+    }
+    
+    .fecha-actual {
+        font-size: 1.1em;
+    }
+    
+    .games-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+    
+    .game-card {
+        padding: 20px;
+    }
+    
+    .game-logo {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .seo-content {
+        padding: 25px;
+        margin: 30px 15px;
+    }
+}
+
+/* Medium Screens - Tablet Portrait */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+    
+    /* Header */
+    header {
+        margin-bottom: 30px;
+    }
+    
+    header h1 {
+        font-size: 2.2em;
+        margin-bottom: 8px;
+    }
+    
+    .fecha-actual {
+        font-size: 1em;
+    }
+    
+    .reloj-container {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .reloj {
+        font-size: 1.1em;
+        padding: 8px 20px;
+    }
+    
+    /* Ruleta */
+    .ruleta-container {
+        top: 10px;
+        right: 10px;
+    }
+
+    .ruleta-button {
+        padding: 12px 20px;
+        font-size: 0.95em;
+    }
+    
+    .nuevo-badge {
+        font-size: 0.65em;
+        padding: 3px 8px;
+    }
+
+    .tooltip {
+        font-size: 0.8em;
+        bottom: -70px;
+        right: -10px;
+        padding: 12px 16px;
+    }
+
+    .tooltip-arrow {
+        right: 20px;
+        font-size: 1.5em;
+    }
+
+    .ruleta-content {
+        padding: 30px 20px;
+        width: 95%;
+    }
+
+    .ruleta-title {
+        font-size: 1.8em;
+        margin-bottom: 20px;
+    }
+
+    .numero-suerte {
+        width: 70px;
+        height: 70px;
+        font-size: 2em;
+    }
+    
+    .mensaje-suerte {
+        font-size: 1.1em;
+    }
+    
+    /* Games Grid */
+    .games-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .game-card {
+        padding: 20px;
+    }
+    
+    .game-title-row {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .game-name {
+        font-size: 1.4em;
+        text-align: center;
+    }
+    
+    .game-logo {
+        width: 80px;
+        height: 80px;
+        order: -1;
+    }
+    
+    .game-meta {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .game-time {
+        font-size: 0.95em;
+        padding: 6px 18px;
+    }
+    
+    /* Números */
+    .bola {
+        width: 65px;
+        height: 65px;
+        font-size: 2em;
+    }
+
+    .bola.texto {
+        font-size: 1em;
+        width: 70px;
+        height: 70px;
+    }
+    
+    .numeros-grid {
+        gap: 15px;
+    }
+    
+    /* Footer */
+    .footer-links {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .footer-links a {
+        display: block;
+    }
+    
+    footer {
+        margin-top: 40px;
+        padding: 25px 15px;
+    }
+    
+    /* SEO Content */
+    .seo-content {
+        padding: 20px;
+        margin: 20px 10px;
+        width: calc(100% - 20px);
+    }
+    
+    .seo-content h2 {
+        font-size: 1.5em;
+    }
+    
+    .tips-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-table {
+        font-size: 0.85em;
+    }
+    
+    .stats-table th,
+    .stats-table td {
+        padding: 10px 8px;
+    }
+}
+
+/* Small Screens - Large Phones */
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+        overflow-x: hidden;
+    }
+    
+    .main-layout {
+        gap: 10px;
+        padding: 0;
+        width: 100%;
+    }
+    
+    /* Header */
+    header h1 {
+        font-size: 1.8em;
+        margin-bottom: 6px;
+        max-width: 100%;
+    }
+    
+    .fecha-actual {
+        font-size: 0.9em;
+    }
+    
+    .reloj {
+        font-size: 1em;
+        padding: 6px 16px;
+        letter-spacing: 1px;
+    }
+    
+    /* Ruleta */
+    .ruleta-container {
+        position: fixed;
+        top: auto;
+        bottom: 15px;
+        right: 15px;
+        left: auto;
+    }
+    
+    .ruleta-button {
+        padding: 10px 16px;
+        font-size: 0.85em;
+        border-radius: 40px;
+    }
+    
+    .nuevo-badge {
+        font-size: 0.6em;
+        padding: 2px 6px;
+    }
+    
+    .tooltip {
+        bottom: auto;
+        top: -70px;
+        right: 0;
+        font-size: 0.75em;
+        padding: 10px 14px;
+        max-width: 200px;
+        white-space: normal;
+    }
+    
+    .tooltip::before {
+        top: auto;
+        bottom: -10px;
+        border-bottom: none;
+        border-top: 10px solid white;
+    }
+    
+    .tooltip-arrow {
+        top: auto;
+        bottom: -30px;
+        right: 20px;
+        font-size: 1.3em;
+        transform: rotate(180deg);
+    }
+    
+    .ruleta-overlay {
+        padding: 10px;
+    }
+    
+    .ruleta-content {
+        padding: 25px 15px;
+        width: calc(100% - 20px);
+        max-width: 100%;
+        border-radius: 20px;
+    }
+    
+    .ruleta-title {
+        font-size: 1.5em;
+        margin-bottom: 15px;
+    }
+    
+    .ruleta-close {
+        top: 10px;
+        right: 15px;
+        font-size: 1.5em;
+    }
+    
+    .numeros-suerte-display {
+        gap: 12px;
+        margin: 25px 0;
+    }
+    
+    .numero-suerte {
+        width: 60px;
+        height: 60px;
+        font-size: 1.8em;
+    }
+    
+    .spinning-number {
+        font-size: 3em;
+    }
+    
+    .mensaje-suerte {
+        font-size: 1em;
+        margin-top: 15px;
+    }
+    
+    /* Games */
+    .games-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+        width: 100%;
+    }
+    
+    .game-card {
+        padding: 18px;
+        border-radius: 15px;
+        width: 100%;
+    }
+    
+    .game-name {
+        font-size: 1.25em;
+    }
+    
+    .game-logo {
+        width: 70px;
+        height: 70px;
+        padding: 8px;
+    }
+    
+    .game-time {
+        font-size: 0.9em;
+        padding: 6px 16px;
+    }
+    
+    .game-date {
+        font-size: 0.9em;
+    }
+    
+    /* Números */
+    .juga3-numero {
+        margin: 30px 0;
+        padding: 15px 0;
+    }
+    
+    .numeros-individuales {
+        gap: 12px;
+    }
+    
+    .bola {
+        width: 55px;
+        height: 55px;
+        font-size: 1.7em;
+    }
+
+    .bola.texto {
+        font-size: 0.85em;
+        width: 60px;
+        height: 60px;
+        padding: 8px;
+    }
+    
+    .numeros-container {
+        margin: 20px 0;
+    }
+    
+    .numeros-titulo {
+        font-size: 0.85em;
+        margin-bottom: 15px;
+    }
+    
+    .numeros-grid {
+        gap: 12px;
+    }
+    
+    .estado-badge {
+        font-size: 0.8em;
+        padding: 6px 16px;
+    }
+    
+    .pendiente {
+        font-size: 1.1em;
+        padding: 30px 15px;
+    }
+    
+    /* Footer */
+    footer {
+        margin-top: 30px;
+        padding: 20px 10px;
+    }
+    
+    footer p {
+        font-size: 0.9em;
+    }
+    
+    .footer-links a {
+        font-size: 0.9em;
+        padding: 6px 12px;
+    }
+    
+    .footer-copyright {
+        font-size: 0.85em;
+    }
+    
+    /* Loading & Error */
+    .loading {
+        font-size: 1.2em;
+        padding: 40px 15px;
+    }
+    
+    .spinner {
+        width: 50px;
+        height: 50px;
+    }
+    
+    .error-message {
+        padding: 30px 20px;
+        font-size: 1.1em;
+        border-radius: 20px;
+    }
+    
+    /* SEO Content Mobile */
+    .seo-content {
+        padding: 15px;
+        margin: 15px 5px;
+        width: calc(100% - 10px);
+    }
+    
+    .seo-content h2 {
+        font-size: 1.3em;
+    }
+    
+    .seo-content h3 {
+        font-size: 1.1em;
+    }
+    
+    .seo-content p {
+        text-align: left;
+        font-size: 0.95em;
+    }
+    
+    .seo-content ul,
+    .seo-content ol {
+        margin-left: 20px;
+    }
+    
+    .tips-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .tip-card {
+        padding: 15px;
+    }
+    
+    .stats-table {
+        font-size: 0.75em;
+        margin: 15px -5px;
+        width: calc(100% + 10px);
+    }
+    
+    .stats-table th,
+    .stats-table td {
+        padding: 8px 5px;
+        font-size: 0.9em;
+    }
+    
+    .highlight-box {
+        padding: 20px 15px;
+        margin: 20px -5px;
+    }
+}
+
+/* Extra Small Screens - Small Phones */
+@media (max-width: 360px) {
+    header h1 {
+        font-size: 1.6em;
+    }
+    
+    .fecha-actual {
+        font-size: 0.85em;
+    }
+    
+    .reloj {
+        font-size: 0.9em;
+        padding: 5px 14px;
+    }
+    
+    .ruleta-button {
+        padding: 8px 14px;
+        font-size: 0.8em;
+    }
+    
+    .ruleta-title {
+        font-size: 1.3em;
+    }
+    
+    .numero-suerte {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5em;
+    }
+    
+    .game-name {
+        font-size: 1.1em;
+    }
+    
+    .game-logo {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .bola {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5em;
+    }
+    
+    .bola.texto {
+        font-size: 0.75em;
+        width: 55px;
+        height: 55px;
+    }
+    
+    .seo-content {
+        padding: 12px;
+        margin: 10px 3px;
+    }
+    
+    .seo-content h2 {
+        font-size: 1.2em;
+    }
+    
+    .seo-content h3 {
+        font-size: 1em;
+    }
+    
+    .seo-content p {
+        font-size: 0.9em;
+    }
+}
+
+/* Landscape Orientation for Phones */
+@media (max-height: 500px) and (orientation: landscape) {
+    body {
+        padding: 5px;
+    }
+    
+    header {
+        margin-bottom: 15px;
+    }
+    
+    header h1 {
+        font-size: 1.5em;
+        margin-bottom: 5px;
+    }
+    
+    .fecha-actual,
+    .reloj {
+        font-size: 0.8em;
+    }
+    
+    .ruleta-container {
+        bottom: 10px;
+        right: 10px;
+    }
+    
+    .ruleta-button {
+        padding: 8px 12px;
+        font-size: 0.8em;
+    }
+    
+    .game-card {
+        padding: 15px;
+    }
+    
+    .bola {
+        width: 50px;
+        height: 50px;
+        font-size: 1.5em;
+    }
+    
+    footer {
+        margin-top: 20px;
+        padding: 15px 10px;
+    }
+    
+    .seo-content {
+        padding: 15px;
+        margin: 15px 5px;
+    }
+}
+
+/* ============================================ */
+/* SECCIONES DE SORTEOS POR HORARIO            */
 /* ============================================ */
 
 .sorteo-section {
     margin-bottom: 50px;
+    animation: fadeIn 0.8s ease;
 }
 
 .sorteo-header {
-    background: var(--primary);
-    color: var(--white);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
     padding: 20px 30px;
     border-radius: 15px;
     font-size: 1.8em;
     font-weight: 700;
     text-align: center;
     margin-bottom: 25px;
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+    letter-spacing: 1px;
     text-transform: uppercase;
 }
 
@@ -601,35 +1491,93 @@ footer p {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
     gap: 25px;
+    width: 100%;
 }
 
-/* ============================================ */
-/* NAVEGACIÓN                                  */
-/* ============================================ */
+/* Responsive para secciones */
+@media (max-width: 1024px) {
+    .sorteo-section {
+        margin-bottom: 40px;
+    }
+    
+    .sorteo-header {
+        font-size: 1.5em;
+        padding: 18px 25px;
+    }
+    
+    .sorteo-grid {
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .sorteo-section {
+        margin-bottom: 35px;
+    }
+    
+    .sorteo-header {
+        font-size: 1.3em;
+        padding: 15px 20px;
+        border-radius: 12px;
+    }
+    
+    .sorteo-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}
+
+@media (max-width: 480px) {
+    .sorteo-section {
+        margin-bottom: 30px;
+    }
+    
+    .sorteo-header {
+        font-size: 1.1em;
+        padding: 12px 15px;
+        border-radius: 10px;
+    }
+    
+    .sorteo-grid {
+        gap: 15px;
+    }
+}
+
+/* ============================================
+   NAVEGACIÓN PRINCIPAL
+   ============================================ */
 
 .main-nav {
-    background: var(--primary);
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
     padding: 0;
     display: flex;
     justify-content: center;
     align-items: center;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
     position: sticky;
     top: 0;
     z-index: 100;
     flex-wrap: wrap;
+    gap: 0;
 }
 
 .main-nav a {
-    color: var(--white);
+    color: white;
     text-decoration: none;
     padding: 16px 24px;
     font-weight: 600;
     font-size: 0.95rem;
+    transition: all 0.3s ease;
     border-bottom: 3px solid transparent;
+    display: inline-block;
+    white-space: nowrap;
 }
 
 .main-nav a:hover {
     background: rgba(255, 255, 255, 0.1);
+    border-bottom-color: #f5576c;
+    transform: translateY(-2px);
 }
 
 .main-nav a.active {
@@ -638,104 +1586,27 @@ footer p {
     font-weight: 700;
 }
 
-/* ============================================ */
-/* RESPONSIVE                                  */
-/* ============================================ */
-
-@media (max-width: 1024px) {
-    body { padding: 15px; }
-    header h1 { font-size: 2.5em; }
-    .games-grid { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
-}
-
+/* Responsive para móviles */
 @media (max-width: 768px) {
-    body { padding: 10px; }
-    header h1 { font-size: 2.2em; }
-    .reloj { font-size: 1.1em; padding: 8px 20px; }
-    
-    /* Botón de ruleta más pequeño y abajo */
-    .ruleta-container {
-        bottom: 15px;
-        right: 15px;
+    .main-nav {
+        padding: 8px 0;
+        overflow-x: auto;
+        justify-content: flex-start;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
     }
     
-    .ruleta-button { 
-        padding: 12px 20px; 
-        font-size: 0.95em; 
+    .main-nav a {
+        padding: 12px 16px;
+        font-size: 0.85rem;
+        flex-shrink: 0;
     }
-    
-    .tooltip {
-        bottom: 65px;
-        max-width: 200px;
-        white-space: normal;
-    }
-    
-    .games-grid { grid-template-columns: 1fr; }
-    .game-logo { width: 80px; height: 80px; }
-    .bola { width: 65px; height: 65px; font-size: 2em; }
-    .main-nav { overflow-x: auto; justify-content: flex-start; }
-    
-    footer { padding-bottom: 90px; }
 }
 
 @media (max-width: 480px) {
-    header h1 { font-size: 1.8em; }
-    .reloj { font-size: 1em; padding: 6px 16px; }
-    
-    /* Botón más pequeño en móviles */
-    .ruleta-container {
-        bottom: 10px;
-        right: 10px;
-    }
-    
-    .ruleta-button { 
-        padding: 10px 16px; 
-        font-size: 0.85em;
-        gap: 6px;
-    }
-    
-    .tooltip {
-        bottom: 60px;
-        padding: 10px 15px;
-        font-size: 0.8em;
-    }
-    
-    .game-card { padding: 18px; }
-    .game-name { font-size: 1.25em; }
-    .game-logo { width: 70px; height: 70px; }
-    .bola { width: 55px; height: 55px; font-size: 1.7em; }
-}
-
-@media (max-width: 360px) {
-    header h1 { font-size: 1.6em; }
-    .game-logo { width: 60px; height: 60px; }
-    .bola { width: 50px; height: 50px; font-size: 1.5em; }
-    
-    /* Botón aún más pequeño */
-    .ruleta-button {
-        padding: 8px 12px;
-        font-size: 0.75em;
+    .main-nav a {
+        padding: 10px 12px;
+        font-size: 0.8rem;
     }
 }
-
-/* ============================================ */
-/* MEJORA: ASEGURAR QUE NO TAPE NAVEGACIÓN    */
-/* ============================================ */
-
-@media (max-width: 768px) {
-    /* Si la navegación está arriba (sticky), el botón siempre abajo */
-    body:has(.main-nav) .ruleta-container {
-        top: auto;
-        bottom: 15px;
-    }
-}
-
-/* Alternativa: Esconder el botón cuando scroll arriba en móvil */
-@media (max-width: 768px) {
-    .ruleta-container.hide-on-scroll {
-        opacity: 0;
-        pointer-events: none;
-    }
-}
-
 
