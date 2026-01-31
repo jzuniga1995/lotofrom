@@ -183,7 +183,7 @@ function agruparPorHorario(sorteos) {
 }
 
 // ============================================
-// CREAR CARDS DE JUEGOS
+// CREAR CARDS DE JUEGOS (ACTUALIZADO CON ICONOS)
 // ============================================
 
 function crearCardJuego(key, datos) {
@@ -213,7 +213,7 @@ function crearCardJuego(key, datos) {
                     ).join('')}
                 </div>
             </div>
-        ` : '<div class="pendiente">⏳ Pendiente</div>';
+        ` : `<div class="pendiente"><i data-lucide="clock" class="w-5 h-5 inline-block mr-2"></i>Pendiente</div>`;
     } else {
         // Otros juegos - Múltiples números en bolas
         if (datos.numeros_adicionales && datos.numeros_adicionales.length > 0) {
@@ -232,7 +232,7 @@ function crearCardJuego(key, datos) {
                 </div>
             `;
         } else {
-            contenidoPrincipal = '<div class="pendiente">⏳ Pendiente</div>';
+            contenidoPrincipal = `<div class="pendiente"><i data-lucide="clock" class="w-5 h-5 inline-block mr-2"></i>Pendiente</div>`;
         }
     }
 
@@ -246,8 +246,8 @@ function crearCardJuego(key, datos) {
                 ${logoHTML}
             </div>
             <div class="game-meta">
-                <div class="game-date">📅 ${fechaConAnio}</div>
-                ${datos.hora_sorteo ? `<div class="game-time">🕐 ${datos.hora_sorteo}</div>` : ''}
+                <div class="game-date"><i data-lucide="calendar" class="w-4 h-4 inline-block mr-1"></i>${fechaConAnio}</div>
+                ${datos.hora_sorteo ? `<div class="game-time"><i data-lucide="clock" class="w-4 h-4 inline-block mr-1"></i>${datos.hora_sorteo}</div>` : ''}
             </div>
         </div>
         
@@ -255,7 +255,7 @@ function crearCardJuego(key, datos) {
         
         ${!datos.numero_ganador && (!datos.numeros_adicionales || datos.numeros_adicionales.length === 0) ? `
             <div style="text-align:center;">
-                <span class="estado-badge">⏳ Próximamente</span>
+                <span class="estado-badge"><i data-lucide="clock" class="w-4 h-4 inline-block mr-1"></i>Próximamente</span>
             </div>
         ` : ''}
     `;
@@ -311,7 +311,7 @@ function ordenarPorFechaYHora(sorteos) {
 }
 
 // ============================================
-// CARGAR RESULTADOS (MODIFICADO CON SECCIONES)
+// CARGAR RESULTADOS (ACTUALIZADO CON ICONOS)
 // ============================================
 
 async function cargarResultados() {
@@ -342,7 +342,10 @@ async function cargarResultados() {
         // Actualizar fecha en el DOM
         const fechaElement = document.getElementById('fechaActual');
         if (fechaElement) {
-            fechaElement.textContent = formatearFecha();
+            const span = fechaElement.querySelector('span');
+            if (span) {
+                span.textContent = formatearFecha();
+            }
         }
         
         // Actualizar última actualización
@@ -369,9 +372,14 @@ async function cargarResultados() {
         if (Object.keys(sorteosFiltrados).length === 0) {
             contenido.innerHTML = `
                 <div class="error-message">
-                    ℹ️ No hay resultados disponibles para este juego todavía.
+                    <i data-lucide="info" class="w-6 h-6 inline-block mr-2"></i>
+                    No hay resultados disponibles para este juego todavía.
                 </div>
             `;
+            // Inicializar iconos
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
             return;
         }
         
@@ -384,13 +392,13 @@ async function cargarResultados() {
         // Limpiar contenido
         contenido.innerHTML = '';
         
-        // **CREAR SECCIONES POR HORARIO**
+        // **CREAR SECCIONES POR HORARIO CON ICONOS**
         const horarios = ['11:00 AM', '3:00 PM', '9:00 PM', 'super'];
-        const emojisHorario = {
-            '11:00 AM': '🌅',
-            '3:00 PM': '☀️',
-            '9:00 PM': '🌙',
-            'super': '🎰'
+        const iconosHorario = {
+            '11:00 AM': 'sunrise',
+            '3:00 PM': 'sun',
+            '9:00 PM': 'moon',
+            'super': 'trophy'
         };
         const nombresHorario = {
             '11:00 AM': 'SORTEO DE LA MAÑANA',
@@ -411,10 +419,13 @@ async function cargarResultados() {
                 // Crear header (sin mostrar hora para Súper Premio)
                 const header = document.createElement('h2');
                 header.className = 'sorteo-header';
+                
+                const iconoHTML = `<i data-lucide="${iconosHorario[horario]}" class="w-6 h-6 inline-block mr-2"></i>`;
+                
                 if (horario === 'super') {
-                    header.textContent = `${emojisHorario[horario]} ${nombresHorario[horario]}`;
+                    header.innerHTML = `${iconoHTML}${nombresHorario[horario]}`;
                 } else {
-                    header.textContent = `${emojisHorario[horario]} ${nombresHorario[horario]} - ${horario}`;
+                    header.innerHTML = `${iconoHTML}${nombresHorario[horario]} - ${horario}`;
                 }
                 
                 // Crear grid para esta sección
@@ -435,16 +446,26 @@ async function cargarResultados() {
             }
         });
         
+        // IMPORTANTE: Inicializar los iconos de Lucide después de crear el contenido
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+        
     } catch (error) {
         console.error('Error:', error);
         const contenido = document.getElementById('contenido');
         if (contenido) {
             contenido.innerHTML = `
                 <div class="error-message">
-                    ⚠️ Error al cargar los resultados<br>
+                    <i data-lucide="alert-triangle" class="w-6 h-6 inline-block mr-2"></i>
+                    Error al cargar los resultados<br>
                     <small>${error.message}</small>
                 </div>
             `;
+            // Inicializar iconos
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
         }
     } finally {
         const loading = document.getElementById('loading');
@@ -497,13 +518,18 @@ programarSiguienteActualizacion();
 
 
 // ============================================
-// RULETA DE NÚMEROS DE LA SUERTE
+// RULETA DE NÚMEROS DE LA SUERTE (ACTUALIZADO)
 // ============================================
 
 // Ocultar tooltip después de 10 segundos
 setTimeout(() => {
     const tooltip = document.getElementById('ruletaTooltip');
-    if (tooltip) tooltip.classList.add('hidden');
+    if (tooltip) {
+        tooltip.style.opacity = '0';
+        setTimeout(() => {
+            tooltip.style.display = 'none';
+        }, 300);
+    }
 }, 10000);
 
 function mostrarRuleta() {
@@ -511,14 +537,17 @@ function mostrarRuleta() {
     const tooltip = document.getElementById('ruletaTooltip');
     const display = document.getElementById('ruletaDisplay');
     
-    if (overlay) overlay.classList.add('active');
-    if (tooltip) tooltip.classList.add('hidden');
+    if (overlay) overlay.classList.remove('hidden');
+    if (tooltip) {
+        tooltip.style.opacity = '0';
+        tooltip.style.display = 'none';
+    }
     
     // Reset display
     if (display) {
         display.innerHTML = `
-            <div class="spinning-number">000</div>
-            <p style="color: #999; margin-top: 20px;">Haz clic en "Girar" para descubrir tus números</p>
+            <div class="text-6xl font-bold text-violet-600 mb-4 py-8 bg-gradient-to-r from-violet-100 to-purple-100 rounded-xl shadow-inner">000</div>
+            <p class="text-gray-500">Haz clic en "Girar" para descubrir tus números</p>
         `;
     }
 }
@@ -526,22 +555,26 @@ function mostrarRuleta() {
 function cerrarRuleta(event) {
     if (event && event.target !== event.currentTarget) return;
     const overlay = document.getElementById('ruletaOverlay');
-    if (overlay) overlay.classList.remove('active');
+    if (overlay) overlay.classList.add('hidden');
 }
 
 function girarRuleta() {
     const display = document.getElementById('ruletaDisplay');
-    const button = event.target;
+    const button = event.target.closest('button');
     
     if (!display || !button) return;
     
     // Deshabilitar botón mientras gira
     button.disabled = true;
-    button.classList.add('spinning');
-    button.textContent = '🎲 Girando...';
+    button.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Girando...</span>`;
+    
+    // Inicializar icono
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
     
     // Mostrar números girando
-    display.innerHTML = '<div class="spinning-number" id="spinningNum">000</div>';
+    display.innerHTML = '<div class="text-6xl font-bold text-violet-600 mb-4 py-8 bg-gradient-to-r from-violet-100 to-purple-100 rounded-xl shadow-inner" id="spinningNum">000</div>';
     
     let counter = 0;
     const spinInterval = setInterval(() => {
@@ -559,8 +592,12 @@ function girarRuleta() {
         
         // Reactivar botón
         button.disabled = false;
-        button.classList.remove('spinning');
-        button.textContent = '🎲 Girar Otra Vez';
+        button.innerHTML = `<i data-lucide="refresh-cw" class="w-5 h-5"></i><span>Girar Ruleta</span>`;
+        
+        // Inicializar iconos
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
         
         // Crear confetti
         crearConfetti();
@@ -592,13 +629,24 @@ function mostrarNumerosSuerte() {
     const display = document.getElementById('ruletaDisplay');
     if (display) {
         display.innerHTML = `
-            <div class="numeros-suerte-display">
+            <div class="grid grid-cols-2 gap-4 mb-6">
                 ${numeros.map(num => `
-                    <div class="numero-suerte">${num.toString().padStart(2, '0')}</div>
+                    <div class="bg-gradient-to-br from-violet-500 to-purple-600 text-white text-4xl font-bold rounded-2xl p-6 shadow-xl transform hover:scale-105 transition-transform">
+                        ${num.toString().padStart(2, '0')}
+                    </div>
                 `).join('')}
             </div>
-            <div class="mensaje-suerte">✨ ${mensajeAleatorio} ✨</div>
+            <div class="flex items-center justify-center gap-2 text-lg font-semibold text-violet-600">
+                <i data-lucide="sparkles" class="w-5 h-5"></i>
+                <span>${mensajeAleatorio}</span>
+                <i data-lucide="sparkles" class="w-5 h-5"></i>
+            </div>
         `;
+        
+        // Inicializar iconos
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
     }
 }
 
@@ -611,15 +659,32 @@ function crearConfetti() {
     for (let i = 0; i < 50; i++) {
         setTimeout(() => {
             const confetti = document.createElement('div');
-            confetti.className = 'confetti';
+            confetti.style.position = 'fixed';
             confetti.style.left = Math.random() * 100 + '%';
+            confetti.style.top = '-10px';
             confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
-            confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
             confetti.style.width = confetti.style.height = (Math.random() * 10 + 5) + 'px';
+            confetti.style.borderRadius = '50%';
+            confetti.style.pointerEvents = 'none';
+            confetti.style.zIndex = '9999';
+            confetti.style.animation = `fall ${Math.random() * 2 + 2}s linear forwards`;
             
             overlay.appendChild(confetti);
             
-            setTimeout(() => confetti.remove(), 3000);
+            setTimeout(() => confetti.remove(), 4000);
         }, i * 30);
     }
 }
+
+// Agregar animación de caída para confetti
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fall {
+        to {
+            transform: translateY(100vh) rotate(360deg);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(style);
+
