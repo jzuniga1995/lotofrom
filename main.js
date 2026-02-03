@@ -12,7 +12,6 @@ const DATOS_EMBEBIDOS = null;
 function obtenerTipoJuego() {
     const path = window.location.pathname.toLowerCase();
     
-    // Mapeo de URLs a tipos de juego
     const mapeo = {
         'juga-3': 'juga3',
         'juga3': 'juga3',
@@ -27,24 +26,23 @@ function obtenerTipoJuego() {
         'superpremio': 'super'
     };
     
-    // Buscar coincidencia en el path
     for (const [key, value] of Object.entries(mapeo)) {
         if (path.includes(key)) {
             return value;
         }
     }
     
-    return 'todos'; // Página principal - mostrar todos
+    return 'todos';
 }
 
 // ============================================
-// RELOJ HONDURAS
+// RELOJ HONDURAS - OPTIMIZADO
 // ============================================
+
+let relojInterval;
 
 function actualizarReloj() {
     const ahora = new Date();
-    
-    // Honduras está en UTC-6 (CST - Central Standard Time)
     const offsetHonduras = -6;
     const utc = ahora.getTime() + (ahora.getTimezoneOffset() * 60000);
     const horaHonduras = new Date(utc + (3600000 * offsetHonduras));
@@ -59,9 +57,31 @@ function actualizarReloj() {
     }
 }
 
-// Actualizar reloj cada segundo
-setInterval(actualizarReloj, 1000);
-actualizarReloj();
+// ← NUEVO: Pausar reloj cuando pestaña está oculta
+function iniciarReloj() {
+    if (document.visibilityState === 'visible') {
+        actualizarReloj();
+        relojInterval = setInterval(actualizarReloj, 1000);
+    }
+}
+
+function detenerReloj() {
+    if (relojInterval) {
+        clearInterval(relojInterval);
+        relojInterval = null;
+    }
+}
+
+// ← NUEVO: Escuchar cambios de visibilidad
+document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') {
+        detenerReloj();
+    } else {
+        iniciarReloj();
+    }
+});
+
+iniciarReloj();
 
 // ============================================
 // UTILIDADES
@@ -74,30 +94,23 @@ function formatearFecha() {
     return `${fecha.getDate()} de ${meses[fecha.getMonth()]} de ${fecha.getFullYear()}`;
 }
 
-// Nueva función para agregar año a la fecha del sorteo
 function formatearFechaSorteo(fechaSorteo) {
-    // Si la fecha ya tiene año (DD-MM-YYYY), retornarla tal cual
     if (fechaSorteo && fechaSorteo.split('-').length === 3) {
         return fechaSorteo;
     }
     
-    // Extraer día y mes
     const [dia, mes] = fechaSorteo.split('-').map(Number);
-    
-    // Obtener fecha actual
     const ahora = new Date();
     const yearActual = ahora.getFullYear();
-    const mesActual = ahora.getMonth() + 1; // 0-11 -> 1-12
+    const mesActual = ahora.getMonth() + 1;
     const diaActual = ahora.getDate();
     
-    // Si el mes es menor al actual, o es el mismo mes pero el día es menor,
-    // entonces es del año actual. Si no, es del año pasado.
     let year = yearActual;
     
     if (mes < mesActual || (mes === mesActual && dia < diaActual)) {
-        year = yearActual; // Fecha en el pasado de este año
+        year = yearActual;
     } else if (mes > mesActual || (mes === mesActual && dia > diaActual)) {
-        year = yearActual - 1; // Fecha del año pasado
+        year = yearActual - 1;
     }
     
     return `${fechaSorteo}-${year}`;
@@ -116,8 +129,6 @@ function filtrarSorteos(sorteos, tipoJuego) {
     
     for (const [key, value] of Object.entries(sorteos)) {
         const keyLower = key.toLowerCase();
-        
-        // Coincidencia exacta del tipo de juego
         if (keyLower.includes(tipoJuego)) {
             filtrados[key] = value;
         }
@@ -127,7 +138,7 @@ function filtrarSorteos(sorteos, tipoJuego) {
 }
 
 // ============================================
-// AGRUPAR SORTEOS POR HORARIO (NUEVA)
+// AGRUPAR SORTEOS POR HORARIO
 // ============================================
 
 function agruparPorHorario(sorteos) {
@@ -135,7 +146,7 @@ function agruparPorHorario(sorteos) {
         '11:00 AM': [],
         '3:00 PM': [],
         '9:00 PM': [],
-        'super': [] // Grupo especial para Súper Premio
+        'super': []
     };
     
     const mapeoHoras = {
@@ -151,7 +162,6 @@ function agruparPorHorario(sorteos) {
     sorteos.forEach(([key, datos]) => {
         const keyLower = key.toLowerCase();
         
-        // Si es Súper Premio, va al grupo especial
         if (keyLower.includes('super')) {
             grupos['super'].push([key, datos]);
         } else {
@@ -164,7 +174,6 @@ function agruparPorHorario(sorteos) {
         }
     });
     
-    // Ordenar dentro de cada grupo por tipo de juego
     const ordenJuegos = ['juga3', 'pega3', 'premia2', 'diaria', 'super'];
     
     Object.keys(grupos).forEach(hora => {
@@ -183,27 +192,46 @@ function agruparPorHorario(sorteos) {
 }
 
 // ============================================
-// CREAR CARDS DE JUEGOS (ACTUALIZADO CON ICONOS)
+// CREAR SKELETON PLACEHOLDERS - NUEVO
+// ============================================
+
+function crearSkeletonCards(cantidad = 3) {
+    let html = '';
+    for (let i = 0; i < cantidad; i++) {
+        html += `
+            <div class="game-card skeleton">
+                <div class="skeleton-line" style="width: 60%; height: 24px;"></div>
+                <div class="skeleton-line" style="width: 40%; height: 16px; margin-top: 8px;"></div>
+                <div style="display: flex; justify-content: center; gap: 8px; margin-top: 20px;">
+                    <div class="skeleton-circle"></div>
+                    <div class="skeleton-circle"></div>
+                    <div class="skeleton-circle"></div>
+                </div>
+            </div>
+        `;
+    }
+    return html;
+}
+
+// ============================================
+// CREAR CARDS DE JUEGOS - OPTIMIZADO
 // ============================================
 
 function crearCardJuego(key, datos) {
     const card = document.createElement('div');
     card.className = 'game-card';
     
-    // Limpiar nombre del juego
     let nombreLimpio = datos.nombre_juego;
     const nombreBase = nombreLimpio.replace(/\s*(11:00 AM|3:00 PM|9:00 PM|10:00 AM|2:00 PM)/gi, '').trim();
     
-    // Logo del juego
+    // ← NUEVO: Width y height fijos en logo
     const logoHTML = datos.logo_url ? 
-        `<img src="${datos.logo_url}" alt="${nombreBase}" class="game-logo" onerror="this.style.display='none'">` : 
+        `<img src="${datos.logo_url}" alt="${nombreBase}" class="game-logo" width="52" height="52" loading="lazy" onerror="this.style.display='none'">` : 
         '';
     
     let contenidoPrincipal = '';
     
-    // Detectar tipo de juego
     if (key.includes('juga3')) {
-        // Jugá 3 - Solo bolas con título
         contenidoPrincipal = datos.numero_ganador ? `
             <div class="juga3-numero">
                 <div class="numeros-titulo">NÚMEROS GANADORES</div>
@@ -215,7 +243,6 @@ function crearCardJuego(key, datos) {
             </div>
         ` : `<div class="pendiente"><i data-lucide="clock" class="w-5 h-5 inline-block mr-2"></i>Pendiente</div>`;
     } else {
-        // Otros juegos - Múltiples números en bolas
         if (datos.numeros_adicionales && datos.numeros_adicionales.length > 0) {
             let titulo = 'NÚMEROS GANADORES';
             if (key.includes('diaria')) titulo = 'NÚMERO · SIGNO · MULTIPLICADOR';
@@ -236,7 +263,6 @@ function crearCardJuego(key, datos) {
         }
     }
 
-    // Formatear la fecha con año
     const fechaConAnio = formatearFechaSorteo(datos.fecha_sorteo);
 
     card.innerHTML = `
@@ -278,7 +304,6 @@ function ordenarPorFechaYHora(sorteos) {
         const [keyA, datosA] = a;
         const [keyB, datosB] = b;
         
-        // Comparar fechas (formato DD-MM o DD-MM-YYYY)
         const partesA = datosA.fecha_sorteo.split('-').map(Number);
         const partesB = datosB.fecha_sorteo.split('-').map(Number);
         
@@ -290,18 +315,15 @@ function ordenarPorFechaYHora(sorteos) {
         const mesB = partesB[1];
         const yearB = partesB[2] || new Date().getFullYear();
         
-        // Ordenar por año, mes y día (más reciente primero)
         if (yearA !== yearB) return yearB - yearA;
         if (mesA !== mesB) return mesB - mesA;
         if (diaA !== diaB) return diaB - diaA;
         
-        // Misma fecha, ordenar por hora
         const horaA = ordenHoras[datosA.hora_sorteo] || 0;
         const horaB = ordenHoras[datosB.hora_sorteo] || 0;
         
         if (horaA !== horaB) return horaA - horaB;
         
-        // Mismo horario, ordenar por tipo de juego
         const ordenJuegos = ['juga3', 'pega3', 'premia2', 'diaria', 'super'];
         const tipoA = ordenJuegos.findIndex(tipo => keyA.includes(tipo));
         const tipoB = ordenJuegos.findIndex(tipo => keyB.includes(tipo));
@@ -311,17 +333,40 @@ function ordenarPorFechaYHora(sorteos) {
 }
 
 // ============================================
-// CARGAR RESULTADOS (ACTUALIZADO CON ICONOS)
+// CARGAR RESULTADOS - OPTIMIZADO CON PLACEHOLDERS
 // ============================================
 
 async function cargarResultados() {
+    const contenido = document.getElementById('contenido');
+    if (!contenido) {
+        console.error('Elemento #contenido no encontrado');
+        return;
+    }
+    
+    // ← NUEVO: Mostrar skeletons INMEDIATAMENTE (evita CLS)
+    contenido.innerHTML = `
+        <div class="sorteo-section">
+            <h2 class="sorteo-header">
+                <i data-lucide="loader-2" class="w-6 h-6 animate-spin"></i>
+                CARGANDO RESULTADOS...
+            </h2>
+            <div class="sorteo-grid">
+                ${crearSkeletonCards(3)}
+            </div>
+        </div>
+    `;
+    
+    // Inicializar iconos del skeleton
+    if (typeof lucide !== 'undefined') {
+        lucide.createIcons();
+    }
+    
     try {
         let data;
         
         if (DATOS_EMBEBIDOS) {
             data = DATOS_EMBEBIDOS;
         } else {
-            // AGREGAR TIMESTAMP PARA EVITAR CACHÉ
             const urlSinCache = `${JSON_URL}?t=${Date.now()}`;
             
             const response = await fetch(urlSinCache, {
@@ -339,7 +384,7 @@ async function cargarResultados() {
             data = await response.json();
         }
         
-        // Actualizar fecha en el DOM
+        // Actualizar fecha
         const fechaElement = document.getElementById('fechaActual');
         if (fechaElement) {
             const span = fechaElement.querySelector('span');
@@ -356,19 +401,10 @@ async function cargarResultados() {
             }
         }
         
-        const contenido = document.getElementById('contenido');
-        if (!contenido) {
-            console.error('Elemento #contenido no encontrado');
-            return;
-        }
-        
         const sorteos = data.sorteos || data;
-        
-        // **FILTRAR según el tipo de página**
         const tipoJuego = obtenerTipoJuego();
         const sorteosFiltrados = filtrarSorteos(sorteos, tipoJuego);
         
-        // Verificar si hay resultados después del filtrado
         if (Object.keys(sorteosFiltrados).length === 0) {
             contenido.innerHTML = `
                 <div class="error-message">
@@ -376,23 +412,18 @@ async function cargarResultados() {
                     No hay resultados disponibles para este juego todavía.
                 </div>
             `;
-            // Inicializar iconos
             if (typeof lucide !== 'undefined') {
                 lucide.createIcons();
             }
             return;
         }
         
-        // Ordenar sorteos filtrados
         const sorteosOrdenados = ordenarPorFechaYHora(sorteosFiltrados);
-        
-        // **AGRUPAR POR HORARIO**
         const gruposPorHorario = agruparPorHorario(sorteosOrdenados);
         
         // Limpiar contenido
         contenido.innerHTML = '';
         
-        // **CREAR SECCIONES POR HORARIO CON ICONOS**
         const horarios = ['11:00 AM', '3:00 PM', '9:00 PM', 'super'];
         const iconosHorario = {
             '11:00 AM': 'sunrise',
@@ -410,13 +441,10 @@ async function cargarResultados() {
         horarios.forEach(horario => {
             const sorteosDeLaHora = gruposPorHorario[horario];
             
-            // Solo mostrar sección si hay sorteos
             if (sorteosDeLaHora && sorteosDeLaHora.length > 0) {
-                // Crear sección
                 const section = document.createElement('div');
                 section.className = 'sorteo-section';
                 
-                // Crear header (sin mostrar hora para Súper Premio)
                 const header = document.createElement('h2');
                 header.className = 'sorteo-header';
                 
@@ -428,44 +456,35 @@ async function cargarResultados() {
                     header.innerHTML = `${iconoHTML}${nombresHorario[horario]} - ${horario}`;
                 }
                 
-                // Crear grid para esta sección
                 const grid = document.createElement('div');
                 grid.className = 'sorteo-grid';
                 
-                // Agregar cards al grid
                 sorteosDeLaHora.forEach(([key, datos]) => {
                     grid.appendChild(crearCardJuego(key, datos));
                 });
                 
-                // Ensamblar sección
                 section.appendChild(header);
                 section.appendChild(grid);
-                
-                // Agregar al contenido principal
                 contenido.appendChild(section);
             }
         });
         
-        // IMPORTANTE: Inicializar los iconos de Lucide después de crear el contenido
+        // Inicializar iconos de Lucide
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
         
     } catch (error) {
         console.error('Error:', error);
-        const contenido = document.getElementById('contenido');
-        if (contenido) {
-            contenido.innerHTML = `
-                <div class="error-message">
-                    <i data-lucide="alert-triangle" class="w-6 h-6 inline-block mr-2"></i>
-                    Error al cargar los resultados<br>
-                    <small>${error.message}</small>
-                </div>
-            `;
-            // Inicializar iconos
-            if (typeof lucide !== 'undefined') {
-                lucide.createIcons();
-            }
+        contenido.innerHTML = `
+            <div class="error-message">
+                <i data-lucide="alert-triangle" class="w-6 h-6 inline-block mr-2"></i>
+                Error al cargar los resultados<br>
+                <small>${error.message}</small>
+            </div>
+        `;
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
         }
     } finally {
         const loading = document.getElementById('loading');
@@ -478,9 +497,9 @@ async function cargarResultados() {
 // Cargar resultados al iniciar
 cargarResultados();
 
-// Actualizar según horarios de sorteo
-// Durante sorteos (11:00-11:30, 15:00-15:30, 21:00-21:30): cada 1 minuto
-// Resto del día: cada 5 minutos
+// ============================================
+// ACTUALIZACIÓN AUTOMÁTICA - OPTIMIZADO
+// ============================================
 
 function obtenerIntervaloActualizacion() {
     const ahora = new Date();
@@ -491,7 +510,6 @@ function obtenerIntervaloActualizacion() {
     const hour = horaHonduras.getHours();
     const minute = horaHonduras.getMinutes();
     
-    // Durante ventanas de sorteo: actualizar cada 1 minuto
     if (
         (hour === 11 && minute >= 0 && minute <= 30) ||
         (hour === 15 && minute >= 0 && minute <= 30) ||
@@ -500,28 +518,23 @@ function obtenerIntervaloActualizacion() {
         return 1 * 60 * 1000; // 1 minuto
     }
     
-    // Resto del día: cada 5 minutos
-    return 5 * 60 * 1000;
+    return 5 * 60 * 1000; // 5 minutos
 }
 
-// Función para recargar con intervalo dinámico
 function programarSiguienteActualizacion() {
     const intervalo = obtenerIntervaloActualizacion();
     setTimeout(() => {
         cargarResultados();
-        programarSiguienteActualizacion(); // Reprogramar
+        programarSiguienteActualizacion();
     }, intervalo);
 }
 
-// Iniciar ciclo de actualizaciones
 programarSiguienteActualizacion();
 
-
 // ============================================
-// RULETA DE NÚMEROS DE LA SUERTE (ACTUALIZADO)
+// RULETA DE NÚMEROS DE LA SUERTE - OPTIMIZADO
 // ============================================
 
-// Ocultar tooltip después de 10 segundos
 setTimeout(() => {
     const tooltip = document.getElementById('ruletaTooltip');
     if (tooltip) {
@@ -543,7 +556,6 @@ function mostrarRuleta() {
         tooltip.style.display = 'none';
     }
     
-    // Reset display
     if (display) {
         display.innerHTML = `
             <div class="text-6xl font-bold text-violet-600 mb-4 py-8 bg-gradient-to-r from-violet-100 to-purple-100 rounded-xl shadow-inner">000</div>
@@ -564,42 +576,36 @@ function girarRuleta() {
     
     if (!display || !button) return;
     
-    // Deshabilitar botón mientras gira
     button.disabled = true;
     button.innerHTML = `<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i><span>Girando...</span>`;
     
-    // Inicializar icono
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
     
-    // Mostrar números girando
     display.innerHTML = '<div class="text-6xl font-bold text-violet-600 mb-4 py-8 bg-gradient-to-r from-violet-100 to-purple-100 rounded-xl shadow-inner" id="spinningNum">000</div>';
     
     let counter = 0;
+    // ← NUEVO: 100ms en vez de 50ms (menos carga)
     const spinInterval = setInterval(() => {
         const spinningNum = document.getElementById('spinningNum');
         if (spinningNum) {
             spinningNum.textContent = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
         }
         counter++;
-    }, 50);
+    }, 100); // ← Cambiado de 50 a 100
     
-    // Después de 3 segundos, mostrar los números finales
     setTimeout(() => {
         clearInterval(spinInterval);
         mostrarNumerosSuerte();
         
-        // Reactivar botón
         button.disabled = false;
         button.innerHTML = `<i data-lucide="refresh-cw" class="w-5 h-5"></i><span>Girar Ruleta</span>`;
         
-        // Inicializar iconos
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
         
-        // Crear confetti
         crearConfetti();
     }, 3000);
 }
@@ -607,7 +613,6 @@ function girarRuleta() {
 function mostrarNumerosSuerte() {
     const numeros = [];
     
-    // Generar 4 números únicos entre 00 y 99
     while(numeros.length < 4) {
         const num = Math.floor(Math.random() * 100);
         if (!numeros.includes(num)) {
@@ -643,7 +648,6 @@ function mostrarNumerosSuerte() {
             </div>
         `;
         
-        // Inicializar iconos
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
@@ -687,4 +691,3 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
-

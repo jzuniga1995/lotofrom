@@ -6,9 +6,9 @@
 }
 
 .sorteo-header {
-    font-size: 1.125rem;       /* 18px */
+    font-size: 1.125rem;
     font-weight: 700;
-    color: #4c1d95;            /* violet oscuro */
+    color: #4c1d95;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     padding: 0.75rem 1rem;
@@ -27,27 +27,30 @@
 }
 
 /* ============================================
-   GRID DE CARDS
+   GRID DE CARDS - OPTIMIZADO CLS
    ============================================ */
 .sorteo-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 1rem;
+    min-height: 320px; /* ← NUEVO: Reserva espacio para evitar layout shift */
 }
 
 /* ============================================
-   CARD DE JUEGO
+   CARD DE JUEGO - OPTIMIZADO CLS
    ============================================ */
 .game-card {
     background: #fff;
-    border-radius: 1rem;           /* 16px */
+    border-radius: 1rem;
     box-shadow: 0 4px 12px rgba(124, 58, 237, 0.12);
-    padding: 1.25rem;              /* 20px */
+    padding: 1.25rem;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     border: 1px solid #ede9fe;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+    min-height: 280px; /* ← NUEVO: Altura mínima fija para evitar shifts */
+    will-change: transform; /* ← NUEVO: Optimiza animaciones */
 }
 
 .game-card:hover {
@@ -55,7 +58,38 @@
     box-shadow: 0 8px 24px rgba(124, 58, 237, 0.2);
 }
 
-/* --- Header de la card --- */
+/* ============================================
+   SKELETON LOADER - NUEVO PARA CLS
+   ============================================ */
+.game-card.skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s infinite ease-in-out;
+    pointer-events: none;
+}
+
+@keyframes skeleton-loading {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+.skeleton-line {
+    height: 20px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.skeleton-circle {
+    width: 48px;
+    height: 48px;
+    background: #e0e0e0;
+    border-radius: 50%;
+}
+
+/* ============================================
+   HEADER DE LA CARD
+   ============================================ */
 .game-header {
     display: flex;
     flex-direction: column;
@@ -67,6 +101,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
+    min-height: 52px; /* ← NUEVO: Reserva espacio para logo */
 }
 
 .game-name {
@@ -79,15 +114,19 @@
 
 .game-logo {
     height: 52px;
-    width: auto;
+    width: 52px; /* ← NUEVO: Width fijo */
     object-fit: contain;
+    flex-shrink: 0; /* ← NUEVO: No se encoge */
 }
 
-/* --- Meta (fecha / hora) --- */
+/* ============================================
+   META (fecha / hora)
+   ============================================ */
 .game-meta {
     display: flex;
     gap: 1rem;
     flex-wrap: wrap;
+    min-height: 20px; /* ← NUEVO: Altura mínima */
 }
 
 .game-date,
@@ -102,16 +141,17 @@
 .game-date i,
 .game-time i {
     color: #a78bfa;
+    width: 16px; /* ← NUEVO: Width fijo para iconos */
+    height: 16px; /* ← NUEVO: Height fijo para iconos */
 }
 
 /* ============================================
-   BOLAS DE NÚMEROS
+   BOLAS DE NÚMEROS - OPTIMIZADO
    ============================================ */
-
-/* Contenedor genérico de números */
 .numeros-container {
     text-align: center;
     padding: 0.5rem 0;
+    min-height: 120px; /* ← NUEVO: Altura mínima */
 }
 
 .numeros-titulo {
@@ -121,20 +161,21 @@
     text-transform: uppercase;
     letter-spacing: 0.1em;
     margin-bottom: 0.6rem;
+    height: 16px; /* ← NUEVO: Altura fija */
 }
 
-/* Grid para Pega 3 / Premia 2 / La Diaria / Súper Premio */
 .numeros-grid {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: 0.5rem;
+    min-height: 60px; /* ← NUEVO: Altura mínima */
 }
 
-/* Jugá 3 — sus propios contenedor e individualese */
 .juga3-numero {
     text-align: center;
     padding: 0.5rem 0;
+    min-height: 120px; /* ← NUEVO: Altura mínima */
 }
 
 .juga3-numero .numeros-individuales {
@@ -157,20 +198,20 @@
     justify-content: center;
     box-shadow: 0 3px 8px rgba(124, 58, 237, 0.35);
     animation: popIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    flex-shrink: 0; /* ← NUEVO: No se encoge */
 }
 
-/* Bola con texto (signos zodiacales, multiplicadores) */
 .bola.texto {
     width: auto;
     min-width: 48px;
     padding: 0 0.75rem;
     font-size: 0.85rem;
     background: linear-gradient(135deg, #6d28d9, #9333ea);
-    border-radius: 24px;   /* cápsula */
+    border-radius: 24px;
 }
 
 /* ============================================
-   ANIMACIONES
+   ANIMACIONES - OPTIMIZADO RENDIMIENTO
    ============================================ */
 @keyframes popIn {
     0% {
@@ -180,6 +221,16 @@
     100% {
         opacity: 1;
         transform: scale(1);
+    }
+}
+
+/* ← NUEVO: Reduce animaciones si el usuario lo prefiere */
+@media (prefers-reduced-motion: reduce) {
+    .bola,
+    .game-card,
+    .skeleton {
+        animation: none !important;
+        transition: none !important;
     }
 }
 
@@ -196,6 +247,7 @@
     align-items: center;
     justify-content: center;
     gap: 0.4rem;
+    min-height: 60px; /* ← NUEVO: Altura mínima */
 }
 
 .estado-badge {
@@ -208,6 +260,7 @@
     font-weight: 600;
     padding: 0.3rem 0.75rem;
     border-radius: 999px;
+    height: 28px; /* ← NUEVO: Altura fija */
 }
 
 /* ============================================
@@ -221,10 +274,13 @@
     padding: 1.5rem;
     text-align: center;
     font-size: 1rem;
+    min-height: 80px; /* ← NUEVO: Altura mínima */
 }
 
 .error-message i {
     color: #dc2626;
+    width: 24px; /* ← NUEVO: Width fijo */
+    height: 24px; /* ← NUEVO: Height fijo */
 }
 
 /* ============================================
@@ -233,6 +289,7 @@
 @media (max-width: 480px) {
     .sorteo-grid {
         grid-template-columns: 1fr;
+        min-height: 300px; /* ← Ajustado para móvil */
     }
 
     .bola {
@@ -243,9 +300,24 @@
 
     .game-card {
         padding: 1rem;
+        min-height: 260px; /* ← Ajustado para móvil */
     }
 
     .sorteo-header {
         font-size: 0.95rem;
     }
+    
+    .game-title-row {
+        min-height: 48px; /* ← Ajustado para móvil */
+    }
 }
+
+/* ============================================
+   OPTIMIZACIÓN GPU - NUEVO
+   ============================================ */
+.game-card,
+.bola {
+    transform: translateZ(0); /* ← Activa aceleración GPU */
+    backface-visibility: hidden;
+}
+
