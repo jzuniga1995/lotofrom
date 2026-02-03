@@ -225,9 +225,9 @@ function crearCardJuego(key, datos) {
     const nombreBase = nombreLimpio.replace(/\s*(11:00 AM|3:00 PM|9:00 PM|10:00 AM|2:00 PM)/gi, '').trim();
     
     // ← NUEVO: Width y height fijos en logo
-    const logoHTML = datos.logo_url ? 
-        `<img src="${datos.logo_url}" alt="${nombreBase}" class="game-logo" width="52" height="52" loading="lazy" onerror="this.style.display='none'">` : 
-        '';
+  const logoHTML = datos.logo_url ? 
+    `<img src="${datos.logo_url}" alt="${nombreBase}" class="game-logo" width="52" height="52" loading="lazy" onerror="this.style.display='none'">` : 
+    '';
     
     let contenidoPrincipal = '';
     

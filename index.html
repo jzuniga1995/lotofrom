@@ -416,7 +416,14 @@
                 <p class="text-gray-600 text-lg">Cargando resultados...</p>
             </div>
 
-            <section id="contenido" aria-label="Resultados de sorteos"></section>
+      <section id="contenido" aria-label="Resultados de sorteos" style="min-height: 400px;">
+    <!-- Placeholders estáticos -->
+    <div style="min-height:320px; display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:1rem;">
+        <div style="min-height:280px; background:#f3f4f6; border-radius:1rem; border:1px solid #e5e7eb;"></div>
+        <div style="min-height:280px; background:#f3f4f6; border-radius:1rem; border:1px solid #e5e7eb;"></div>
+        <div style="min-height:280px; background:#f3f4f6; border-radius:1rem; border:1px solid #e5e7eb;"></div>
+    </div>
+</section>
 
             <!-- ============== CONTENIDO SEO VISIBLE ULTRA COMPLETO ============== -->
             <article class="bg-white rounded-2xl shadow-xl p-6 md:p-8 mt-6 prose max-w-none">
