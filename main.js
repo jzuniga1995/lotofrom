@@ -57,7 +57,6 @@ function actualizarReloj() {
     }
 }
 
-// ← NUEVO: Pausar reloj cuando pestaña está oculta
 function iniciarReloj() {
     if (document.visibilityState === 'visible') {
         actualizarReloj();
@@ -72,7 +71,6 @@ function detenerReloj() {
     }
 }
 
-// ← NUEVO: Escuchar cambios de visibilidad
 document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
         detenerReloj();
@@ -192,7 +190,7 @@ function agruparPorHorario(sorteos) {
 }
 
 // ============================================
-// CREAR SKELETON PLACEHOLDERS - NUEVO
+// SKELETON PLACEHOLDERS
 // ============================================
 
 function crearSkeletonCards(cantidad = 3) {
@@ -214,6 +212,36 @@ function crearSkeletonCards(cantidad = 3) {
 }
 
 // ============================================
+// 🚀 PRELOAD DE LOGOS - NUEVO
+// ============================================
+
+const logosPreloadCache = new Set();
+
+function preloadLogos(sorteos) {
+    // Obtener todos los logos únicos
+    const logosUnicos = new Set();
+    
+    Object.values(sorteos).forEach(datos => {
+        if (datos.logo_url && datos.logo_url.startsWith('/logos/')) {
+            logosUnicos.add(datos.logo_url);
+        }
+    });
+    
+    // Precargar cada logo solo una vez
+    logosUnicos.forEach(logoUrl => {
+        if (!logosPreloadCache.has(logoUrl)) {
+            const link = document.createElement('link');
+            link.rel = 'preload';
+            link.as = 'image';
+            link.href = logoUrl;
+            document.head.appendChild(link);
+            
+            logosPreloadCache.add(logoUrl);
+        }
+    });
+}
+
+// ============================================
 // CREAR CARDS DE JUEGOS - OPTIMIZADO
 // ============================================
 
@@ -224,10 +252,17 @@ function crearCardJuego(key, datos) {
     let nombreLimpio = datos.nombre_juego;
     const nombreBase = nombreLimpio.replace(/\s*(11:00 AM|3:00 PM|9:00 PM|10:00 AM|2:00 PM)/gi, '').trim();
     
-    // ← NUEVO: Width y height fijos en logo
-  const logoHTML = datos.logo_url ? 
-    `<img src="${datos.logo_url}" alt="${nombreBase}" class="game-logo" width="52" height="52" loading="lazy" onerror="this.style.display='none'">` : 
-    '';
+    // ✅ Logo optimizado con width/height fijos y loading="lazy"
+    const logoHTML = datos.logo_url ? 
+        `<img src="${datos.logo_url}" 
+             alt="${nombreBase}" 
+             class="game-logo" 
+             width="52" 
+             height="52" 
+             loading="lazy" 
+             decoding="async"
+             onerror="this.style.display='none'">` : 
+        '';
     
     let contenidoPrincipal = '';
     
@@ -333,7 +368,7 @@ function ordenarPorFechaYHora(sorteos) {
 }
 
 // ============================================
-// CARGAR RESULTADOS - OPTIMIZADO CON PLACEHOLDERS
+// CARGAR RESULTADOS - OPTIMIZADO
 // ============================================
 
 async function cargarResultados() {
@@ -343,7 +378,7 @@ async function cargarResultados() {
         return;
     }
     
-    // ← NUEVO: Mostrar skeletons INMEDIATAMENTE (evita CLS)
+    // Mostrar skeletons inmediatamente
     contenido.innerHTML = `
         <div class="sorteo-section">
             <h2 class="sorteo-header">
@@ -356,7 +391,6 @@ async function cargarResultados() {
         </div>
     `;
     
-    // Inicializar iconos del skeleton
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
@@ -378,7 +412,7 @@ async function cargarResultados() {
             });
             
             if (!response.ok) {
-                throw new Error('No se pudieron cargar los resultados. Por favor, intenta de nuevo más tarde.');
+                throw new Error('No se pudieron cargar los resultados.');
             }
             
             data = await response.json();
@@ -393,7 +427,7 @@ async function cargarResultados() {
             }
         }
         
-        // Actualizar última actualización
+        // Última actualización
         if (data.fecha_actualizacion) {
             const actualizacionElement = document.getElementById('ultimaActualizacion');
             if (actualizacionElement) {
@@ -409,7 +443,7 @@ async function cargarResultados() {
             contenido.innerHTML = `
                 <div class="error-message">
                     <i data-lucide="info" class="w-6 h-6 inline-block mr-2"></i>
-                    No hay resultados disponibles para este juego todavía.
+                    No hay resultados disponibles todavía.
                 </div>
             `;
             if (typeof lucide !== 'undefined') {
@@ -418,10 +452,12 @@ async function cargarResultados() {
             return;
         }
         
+        // ✅ PRELOAD DE LOGOS (antes de renderizar)
+        preloadLogos(sorteosFiltrados);
+        
         const sorteosOrdenados = ordenarPorFechaYHora(sorteosFiltrados);
         const gruposPorHorario = agruparPorHorario(sorteosOrdenados);
         
-        // Limpiar contenido
         contenido.innerHTML = '';
         
         const horarios = ['11:00 AM', '3:00 PM', '9:00 PM', 'super'];
@@ -469,7 +505,6 @@ async function cargarResultados() {
             }
         });
         
-        // Inicializar iconos de Lucide
         if (typeof lucide !== 'undefined') {
             lucide.createIcons();
         }
@@ -494,11 +529,10 @@ async function cargarResultados() {
     }
 }
 
-// Cargar resultados al iniciar
 cargarResultados();
 
 // ============================================
-// ACTUALIZACIÓN AUTOMÁTICA - OPTIMIZADO
+// ACTUALIZACIÓN AUTOMÁTICA
 // ============================================
 
 function obtenerIntervaloActualizacion() {
@@ -532,7 +566,7 @@ function programarSiguienteActualizacion() {
 programarSiguienteActualizacion();
 
 // ============================================
-// RULETA DE NÚMEROS DE LA SUERTE - OPTIMIZADO
+// RULETA DE NÚMEROS (sin cambios)
 // ============================================
 
 setTimeout(() => {
@@ -586,14 +620,13 @@ function girarRuleta() {
     display.innerHTML = '<div class="text-6xl font-bold text-violet-600 mb-4 py-8 bg-gradient-to-r from-violet-100 to-purple-100 rounded-xl shadow-inner" id="spinningNum">000</div>';
     
     let counter = 0;
-    // ← NUEVO: 100ms en vez de 50ms (menos carga)
     const spinInterval = setInterval(() => {
         const spinningNum = document.getElementById('spinningNum');
         if (spinningNum) {
             spinningNum.textContent = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
         }
         counter++;
-    }, 100); // ← Cambiado de 50 a 100
+    }, 100);
     
     setTimeout(() => {
         clearInterval(spinInterval);
@@ -680,7 +713,6 @@ function crearConfetti() {
     }
 }
 
-// Agregar animación de caída para confetti
 const style = document.createElement('style');
 style.textContent = `
     @keyframes fall {
@@ -691,3 +723,4 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
+
