@@ -260,8 +260,7 @@ function crearCardJuego(key, datos) {
              width="52" 
              height="52" 
              loading="lazy" 
-             decoding="async"
-             onerror="this.style.display='none'">` : 
+             decoding="async">` : 
         '';
     
     let contenidoPrincipal = '';
